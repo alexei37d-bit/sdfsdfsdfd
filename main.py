@@ -8,26 +8,30 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 BOT_TOKEN = "8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8"
 CHANNEL_LINK = "https://t.me/project_ImpassL"
 
+# Создаем бота и диспетчер ДО всех функций
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
 # Кастомные эмоджи (ID)
-EMOJI_ROCKET       = "5258332798409783582"
-EMOJI_WALLET       = "5379639755933781390"
-EMOJI_DEPOSIT      = "5222153011815553801"
-EMOJI_WITHDRAW     = "5219926964625779761"
-EMOJI_EXCHANGE     = "5379733369040964216"
-EMOJI_SWAP         = "5222200204916201346"
-EMOJI_BUY_SELL     = "5377660282816468683"
-EMOJI_P2P          = "5380002586181015442"
-EMOJI_QR           = "5361580286037499439"
-EMOJI_SHOW_MORE    = "5379800318991177888"
+EMOJI_ROCKET    = "5258332798409783582"
+EMOJI_WALLET    = "5379639755933781390"
+EMOJI_DEPOSIT   = "5222153011815553801"
+EMOJI_WITHDRAW  = "5219926964625779761"
+EMOJI_EXCHANGE  = "5379733369040964216"
+EMOJI_SWAP      = "5222200204916201346"
+EMOJI_BUY_SELL  = "5377660282816468683"
+EMOJI_P2P       = "5380002586181015442"
+EMOJI_QR        = "5361580286037499439"
+EMOJI_SHOW_MORE = "5379800318991177888"
 
 
 async def build_keyboard():
     """Собирает клавиатуру с кастомными эмоджи."""
     builder = InlineKeyboardBuilder()
 
-    # Строка 1 — Кошелёк (по центру)
+    # Строка 1 — Кошелёк
     builder.row(InlineKeyboardButton(
-        text="Кошелёк · 0.00 $",
+        text="Кошелёк · 0.01 $",
         callback_data="wallet",
         custom_emoji_id=EMOJI_WALLET
     ))
@@ -74,7 +78,7 @@ async def cmd_start(message: types.Message):
     except Exception:
         pass
 
-    # Используем одинарные кавычки для href внутри f-строки
+    # Формируем текст приветствия (используем одинарные кавычки для href)
     welcome_text = (
         '<tg-emoji emoji-id="5258332798409783582"></tg-emoji> xRocket — это бот-кошелёк для\n'
         'получения, отправки, покупки и хранения\n'
@@ -92,11 +96,6 @@ async def cmd_start(message: types.Message):
 
 
 async def main():
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher()
-
-    dp.message.register(cmd_start, Command("start"))
-
     print("✅ Бот запущен! Отправьте /start для проверки.")
     await dp.start_polling(bot)
 
