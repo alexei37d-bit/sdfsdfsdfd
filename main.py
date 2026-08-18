@@ -23,127 +23,51 @@ EMOJI_P2P          = "5380002586181015442"
 EMOJI_QR           = "5361580286037499439"
 EMOJI_SHOW_MORE    = "5379800318991177888"
 
-# Эмоджи для списка монет (🪙)
-COIN_EMOJI_ID = "5246858196278075452" 
+# Обычные эмодзи для кнопок кошелька
+EMOJI_TRANSFER     = "🔄"
+EMOJI_SECURITY     = "🔗"
 
-# Данные всех монет (Название, Тикер, Ссылка)
-# Разбиты на страницы по 10 штук, чтобы соответствовать скриншотам
-ALL_COINS = [
-    # Страница 1
-    {"name": "USDT", "ticker": "USDT", "link": "https://tether.to"},
-    {"name": "GRAM", "ticker": "GRAM", "link": "https://ton.org"},
-    {"name": "CES", "ticker": "CES", "link": "https://cescoin.io"},
-    {"name": "XROCK", "ticker": "XROCK", "link": "https://xrocket.app"},
-    {"name": "USDC", "ticker": "USDC", "link": "https://www.circle.com/usdc"},
-    {"name": "SOL", "ticker": "SOL", "link": "https://solana.com"},
-    {"name": "ETH", "ticker": "ETH", "link": "https://ethereum.org"},
-    {"name": "TRX", "ticker": "TRX", "link": "https://tron.network"},
-    {"name": "BTC", "ticker": "BTC", "link": "https://bitcoin.org"},
-    {"name": "BNB", "ticker": "BNB", "link": "https://www.binance.com/en/bnb"},
-    
-    # Страница 2
-    {"name": "XAUT", "ticker": "XAUT", "link": "https://www.tethergold.com"},
-    {"name": "EVAA", "ticker": "EVAA", "link": "https://evaa.finance"},
-    {"name": "DFC", "ticker": "DFC", "link": "https://coinmarketcap.com/currencies/defi-coin/"},
-    {"name": "STBL", "ticker": "STBL", "link": "https://coinmarketcap.com/currencies/stable-token/"},
-    {"name": "NOT", "ticker": "NOT", "link": "https://notcoin.world"},
-    {"name": "JETTON", "ticker": "JETTON", "link": "https://coinmarketcap.com/currencies/jetton/"},
-    {"name": "WEB3", "ticker": "WEB3", "link": "https://coinmarketcap.com/currencies/web3/"},
-    {"name": "HYDRA", "ticker": "HYDRA", "link": "https://hydrachain.org"},
-    {"name": "GEMSTON", "ticker": "GEMSTON", "link": "https://coinmarketcap.com/currencies/gemston/"},
-    {"name": "GRBS", "ticker": "GRBS", "link": "https://coinmarketcap.com/currencies/grbs/"},
+# Ссылки на официальные сайты валют
+COIN_LINKS = {
+    "USDT": "https://tether.to",
+    "GRAM": "https://ton.org",
+    "CES": "https://cescoin.io",
+    "XROCK": "https://xrocket.app",
+    "USDC": "https://www.circle.com/usdc",
+    "SOL": "https://solana.com",
+    "ETH": "https://ethereum.org",
+    "TRX": "https://tron.network",
+    "BTC": "https://bitcoin.org"
+}
 
-    # Страница 3
-    {"name": "VIRUS", "ticker": "VIRUS", "link": "https://coinmarketcap.com/currencies/virus/"},
-    {"name": "CATS", "ticker": "CATS", "link": "https://catsgang.app"},
-    {"name": "ALENKA", "ticker": "ALENKA", "link": "https://coinmarketcap.com/currencies/alanka/"},
-    {"name": "OPEN", "ticker": "OPEN", "link": "https://opentensor.tech"},
-    {"name": "ANON", "ticker": "ANON", "link": "https://coinmarketcap.com/currencies/anon/"},
-    {"name": "GRC", "ticker": "GRC", "link": "https://gridcoin.us"},
-    {"name": "CATI", "ticker": "CATI", "link": "https://cati.network"},
-    {"name": "BOLT", "ticker": "BOLT", "link": "https://bolt.mobi"},
-    {"name": "DUREV", "ticker": "DUREV", "link": "https://coinmarketcap.com/currencies/durev/"},
-    {"name": "MAJOR", "ticker": "MAJOR", "link": "https://major.bot"},
+# ===== ЛОГИКА БАЛАНСОВ (ЗАГЛУШКА) =====
+def get_user_balance(user_id: int):
+    """Возвращает словарь с балансами пользователя."""
+    return {
+        "usdt": 0.00,
+        "gram": 0.00,
+        "ces": 0.00,
+        "xrock": 0.00,
+        "usdc": 0.00,
+        "sol": 0.00,
+        "eth": 0.00,
+        "trx": 0.00,
+        "btc": 0.00,
+        "total_usd": 0.00
+    }
 
-    # Страница 4
-    {"name": "FID", "ticker": "FID", "link": "https://coinmarketcap.com/currencies/fid/"},
-    {"name": "STON", "ticker": "STON", "link": "https://ston.fi"},
-    {"name": "1MBABYDOGE", "ticker": "1MBABYDOGE", "link": "https://babydoge.com"},
-    {"name": "DUST", "ticker": "DUST", "link": "https://dustprotocol.org"},
-    {"name": "WOOF", "ticker": "WOOF", "link": "https://woofy.finance"},
-    {"name": "DHD", "ticker": "DHD", "link": "https://coinmarketcap.com/currencies/dhd/"},
-    {"name": "JVT", "ticker": "JVT", "link": "https://jetvault.io"},
-    {"name": "MRDN", "ticker": "MRDN", "link": "https://coinmarketcap.com/currencies/mardan/"},
-    {"name": "tsTON", "ticker": "tsTON", "link": "https://ton.org"},
-    {"name": "BUILD", "ticker": "BUILD", "link": "https://coinmarketcap.com/currencies/build/"},
-
-    # Страница 5
-    {"name": "stXP", "ticker": "stXP", "link": "https://coinmarketcap.com/currencies/stxp/"},
-    {"name": "SP", "ticker": "SP", "link": "https://coinmarketcap.com/currencies/sp/"},
-    {"name": "TNX", "ticker": "TNX", "link": "https://coinmarketcap.com/currencies/tnx/"},
-    {"name": "MELANIA", "ticker": "MELANIA", "link": "https://coinmarketcap.com/currencies/melania-meme/"},
-    {"name": "GGT", "ticker": "GGT", "link": "https://coinmarketcap.com/currencies/ggt/"},
-    {"name": "TRUMP", "ticker": "TRUMP", "link": "https://coinmarketcap.com/currencies/trump/"},
-    {"name": "STORM", "ticker": "STORM", "link": "https://storm.trade"},
-    {"name": "DOGS", "ticker": "DOGS", "link": "https://dogs.community"},
-    {"name": "TAKE", "ticker": "TAKE", "link": "https://coinmarketcap.com/currencies/take/"},
-    {"name": "RAFF", "ticker": "RAFF", "link": "https://raffle.xyz"},
-
-    # Страница 6
-    {"name": "GRM", "ticker": "GRM", "link": "https://coinmarketcap.com/currencies/grm/"},
-    {"name": "TONNEL", "ticker": "TONNEL", "link": "https://tonnel.network"},
-    {"name": "PUNK", "ticker": "PUNK", "link": "https://cryptopunks.app"},
-    {"name": "KINGY", "ticker": "KINGY", "link": "https://coinmarketcap.com/currencies/kingy/"},
-]
-
-# Функция получения баланса (всегда 0)
-def get_balance(ticker):
-    return 0.0
-
-async def build_wallet_page(page_num: int):
-    """Создает клавиатуру для конкретной страницы кошелька."""
+async def build_wallet_keyboard():
+    """Клавиатура для экрана кошелька."""
     builder = InlineKeyboardBuilder()
-    
-    # Определяем диапазон монет для текущей страницы (по 10 на страницу)
-    start_idx = (page_num - 1) * 10
-    end_idx = start_idx + 10
-    coins_on_page = ALL_COINS[start_idx:end_idx]
-    
-    # Добавляем кнопки монет
-    for coin in coins_on_page:
-        balance = get_balance(coin['ticker'])
-        text = f"{coin['ticker']}: {balance} {coin['ticker']}"
-        # Используем callback_data для открытия ссылки или информации
-        builder.row(InlineKeyboardButton(text=text, url=coin['link']))
-
-    # Пагинация (1 2 3 4 5 6 7)
-    pagination_row = []
-    total_pages = 7
-    
-    # Кнопка "Назад" (<)
-    if page_num > 1:
-        pagination_row.append(InlineKeyboardButton(text="‹", callback_data=f"wallet_page_{page_num-1}"))
-    
-    # Цифры страниц
-    for i in range(1, total_pages + 1):
-        if i == page_num:
-            pagination_row.append(InlineKeyboardButton(text=f"•{i}•", callback_data="noop"))
-        else:
-            pagination_row.append(InlineKeyboardButton(text=str(i), callback_data=f"wallet_page_{i}"))
-            
-    # Кнопка "Вперед" (>)
-    if page_num < total_pages:
-        pagination_row.append(InlineKeyboardButton(text="›", callback_data=f"wallet_page_{page_num+1}"))
-        
-    builder.row(*pagination_row)
-
-    # Нижние кнопки
     builder.row(
         InlineKeyboardButton(text="Пополнение", callback_data="deposit", icon_custom_emoji_id=EMOJI_DEPOSIT),
         InlineKeyboardButton(text="Вывод",      callback_data="withdraw", icon_custom_emoji_id=EMOJI_WITHDRAW),
     )
     builder.row(InlineKeyboardButton(text="Общий баланс", callback_data="total_balance"))
-    
+    builder.row(InlineKeyboardButton(text=f"{EMOJI_TRANSFER} Перевод между балансами", callback_data="transfer"))
+    builder.row(InlineKeyboardButton(text=f"{EMOJI_SECURITY} Повысить безопасность", callback_data="security"))
+    builder.row(InlineKeyboardButton(text="Отображение балансов", callback_data="display_settings", icon_custom_emoji_id=EMOJI_WALLET))
+    builder.row(InlineKeyboardButton(text="‹ Назад", callback_data="back_to_menu"))
     return builder.as_markup()
 
 @dp.message(Command("start"))
@@ -182,14 +106,47 @@ async def cmd_start(message: types.Message):
 
 @dp.callback_query(lambda c: c.data == "open_wallet")
 async def open_wallet(callback: types.CallbackQuery):
-    # Открываем сразу 1 страницу
-    keyboard = await build_wallet_page(1)
+    user_id = callback.from_user.id
+    balance = get_user_balance(user_id)
     
-    wallet_text = (
-        f'<b><tg-emoji emoji-id="{EMOJI_WALLET}"></tg-emoji> Мой кошелёк</b>\n\n'
-        f'≈ 0.01 $\n\n'
+    # Логика отображения USDT (со скобками если есть баланс)
+    usdt_val = balance['usdt']
+    usdt_display = f"{usdt_val:.2f}"
+    if usdt_val > 0:
+        usdt_line = f'<tg-emoji emoji-id="5413877074848932790">🪙</tg-emoji> USDT: {usdt_display} (${usdt_val:.2f})'
+    else:
+        usdt_line = f'<tg-emoji emoji-id="5413877074848932790">🪙</tg-emoji> USDT: {usdt_display}'
+
+    # Функция для форматирования остальных монет со ссылками
+    def format_coin_line(emoji_id: str, code: str, name: str, val: float):
+        link = COIN_LINKS.get(code, "#")
+        display_val = f"{val:.2f}" 
+        
+        if val > 0:
+            return f'<a href="{link}"><tg-emoji emoji-id="{emoji_id}">🪙</tg-emoji> {name}</a>: {display_val} (${val:.2f})'
+        else:
+            return f'<a href="{link}"><tg-emoji emoji-id="{emoji_id}">🪙</tg-emoji> {name}</a>: {display_val}'
+
+    lines = [
+        f'<b><tg-emoji emoji-id="5379639755933781390"></tg-emoji> Мой кошелек</b>',
+        '',
+        usdt_line,
+        format_coin_line("5294028881492226080", "GRAM", "GRAM", balance["gram"]),
+        format_coin_line("5247162782473808472", "CES", "CES", balance["ces"]),
+        format_coin_line("5287770667465337224", "XROCK", "XROCK", balance["xrock"]),
+        format_coin_line("5453937927035840798", "USDC", "USDC", balance["usdc"]),
+        format_coin_line("5433727851050329182", "SOL", "SOL", balance["sol"]),
+        format_coin_line("5453866639168658609", "ETH", "ETH", balance["eth"]),
+        format_coin_line("5453889668783303273", "TRX", "TRX", balance["trx"]),
+        format_coin_line("5454111585448517733", "BTC", "BTC", balance["btc"]),
+        '',
+        f'≈ {balance["total_usd"]:.2f} $',
+        '',
         'Чтобы настроить отображение, нажми на кнопку "Отображение балансов".'
-    )
+    ]
+    
+    wallet_text = '\n'.join(lines)
+    keyboard = await build_wallet_keyboard()
     
     try:
         await callback.message.delete()
@@ -199,26 +156,45 @@ async def open_wallet(callback: types.CallbackQuery):
     await callback.message.answer(text=wallet_text, reply_markup=keyboard, parse_mode="HTML")
     await callback.answer()
 
-@dp.callback_query(lambda c: c.data.startswith("wallet_page_"))
-async def switch_wallet_page(callback: types.CallbackQuery):
-    page_num = int(callback.data.split("_")[2])
-    keyboard = await build_wallet_page(page_num)
-    
-    wallet_text = (
-        f'<b><tg-emoji emoji-id="{EMOJI_WALLET}">👛</tg-emoji> Мой кошелёк</b>\n\n'
-        f'≈ 0.01 $\n\n'
-        'Чтобы настроить отображение, нажми на кнопку "Отображение балансов".'
+@dp.callback_query(lambda c: c.data == "back_to_menu")
+async def back_to_menu(callback: types.CallbackQuery):
+    welcome_text = (
+        f'<tg-emoji emoji-id="{EMOJI_ROCKET}">🚀</tg-emoji> xRocket — это бот-кошелёк для\n'
+        'получения, отправки, покупки и хранения\n'
+        'криптовалюты в Telegram.\n\n'
+        f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
     )
     
-    await callback.message.edit_text(text=wallet_text, reply_markup=keyboard, parse_mode="HTML")
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="Кошелёк · 0.00 $", callback_data="open_wallet", icon_custom_emoji_id=EMOJI_WALLET))
+    builder.row(
+        InlineKeyboardButton(text="Пополнить", callback_data="deposit", icon_custom_emoji_id=EMOJI_DEPOSIT),
+        InlineKeyboardButton(text="Вывести",   callback_data="withdraw", icon_custom_emoji_id=EMOJI_WITHDRAW),
+    )
+    builder.row(
+        InlineKeyboardButton(text="Биржа",     callback_data="exchange", icon_custom_emoji_id=EMOJI_EXCHANGE),
+        InlineKeyboardButton(text="Обмен",     callback_data="swap",     icon_custom_emoji_id=EMOJI_SWAP),
+    )
+    builder.row(
+        InlineKeyboardButton(text="Купить/Продать", callback_data="buy_sell", icon_custom_emoji_id=EMOJI_BUY_SELL),
+        InlineKeyboardButton(text="P2P Маркет",     callback_data="p2p",      icon_custom_emoji_id=EMOJI_P2P),
+    )
+    builder.row(
+        InlineKeyboardButton(text="Оплатить по QR", callback_data="qr_pay",    icon_custom_emoji_id=EMOJI_QR),
+        InlineKeyboardButton(text="Показать ещё",   callback_data="show_more", icon_custom_emoji_id=EMOJI_SHOW_MORE),
+    )
+    
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+        
+    await callback.message.answer(text=welcome_text, reply_markup=builder.as_markup(), parse_mode="HTML")
     await callback.answer()
 
 @dp.callback_query(lambda c: True)
 async def dummy_callback(callback: types.CallbackQuery):
-    if callback.data != "noop":
-        await callback.answer("Раздел в разработке 🚧", show_alert=True)
-    else:
-        await callback.answer()
+    await callback.answer("Раздел в разработке 🚧", show_alert=True)
 
 async def main():
     print("✅ Бот запущен! Отправьте /start для проверки.")
