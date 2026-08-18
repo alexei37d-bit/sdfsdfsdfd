@@ -66,7 +66,7 @@ async def build_keyboard():
 async def cmd_start(message: types.Message):
     # Формируем текст приветствия с кастомным эмоджи ракеты
     welcome_text = (
-        f'<tg-emoji emoji-id="{EMOJI_ROCKET}"></tg-emoji> xRocket — это бот-кошелёк для\n'
+        f'<tg-emoji emoji-id=\"5258332798409783582\">🚀</tg-emoji> xRocket — это бот-кошелёк для\n'
         'получения, отправки, покупки и хранения\n'
         'криптовалюты в Telegram.\n\n'
         f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
