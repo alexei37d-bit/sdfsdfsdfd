@@ -27,7 +27,7 @@ async def build_keyboard():
 
     # Строка 1 — Кошелёк (по центру)
     builder.row(InlineKeyboardButton(
-        text="Кошелёк · 0.01 $",
+        text="Кошелёк · 0.00 $",
         callback_data="wallet",
         custom_emoji_id=EMOJI_WALLET
     ))
@@ -74,13 +74,12 @@ async def cmd_start(message: types.Message):
     except Exception:
         pass
 
-    # Формируем текст приветствия
+    # Используем одинарные кавычки для href внутри f-строки
     welcome_text = (
-        "<tg-emoji emoji-id=\"5258332798409783582\">🚀</tg-emoji> xRocket — это бот-кошелёк для\\n"
-        "получения, отправки, покупки и хранения\\n"
-        "криптовалюты в Telegram.\\n\\n"
-        "Обо всех возможностях читай в "
-        f"<a href=\\"{CHANNEL_LINK}\\">официальном канале</a>"
+        '<tg-emoji emoji-id="5258332798409783582"></tg-emoji> xRocket — это бот-кошелёк для\n'
+        'получения, отправки, покупки и хранения\n'
+        'криптовалюты в Telegram.\n\n'
+        f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
     )
 
     keyboard = await build_keyboard()
