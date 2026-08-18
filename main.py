@@ -1,14 +1,13 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # ===== НАСТРОЙКИ =====
 BOT_TOKEN = "8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8"
 CHANNEL_LINK = "https://t.me/project_ImpassL"
 
-# Создаем бота и диспетчер ДО всех функций
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -26,47 +25,48 @@ EMOJI_SHOW_MORE = "5379800318991177888"
 
 
 async def build_keyboard():
-    """Собирает клавиатуру с кастомными эмоджи."""
+    """Собирает клавиатуру с кастомными эмоджи через icon_custom_emoji_id."""
     builder = InlineKeyboardBuilder()
 
     # Строка 1 — Кошелёк
     builder.row(InlineKeyboardButton(
-        text="Кошелёк · 0.01 $",
+        text="Кошелёк · 0.00 $",
         callback_data="wallet",
-        custom_emoji_id=EMOJI_WALLET
+        icon_custom_emoji_id=EMOJI_WALLET
     ))
 
     # Строка 2 — Пополнить | Вывести
     builder.row(
-        InlineKeyboardButton(text="Пополнить", callback_data="deposit", custom_emoji_id=EMOJI_DEPOSIT),
-        InlineKeyboardButton(text="Вывести",   callback_data="withdraw", custom_emoji_id=EMOJI_WITHDRAW),
+        InlineKeyboardButton(text="Пополнить", callback_data="deposit", icon_custom_emoji_id=EMOJI_DEPOSIT),
+        InlineKeyboardButton(text="Вывести",   callback_data="withdraw", icon_custom_emoji_id=EMOJI_WITHDRAW),
     )
 
     # Строка 3 — Биржа | Обмен
     builder.row(
-        InlineKeyboardButton(text="Биржа",     callback_data="exchange", custom_emoji_id=EMOJI_EXCHANGE),
-        InlineKeyboardButton(text="Обмен",     callback_data="swap",     custom_emoji_id=EMOJI_SWAP),
+        InlineKeyboardButton(text="Биржа",     callback_data="exchange", icon_custom_emoji_id=EMOJI_EXCHANGE),
+        InlineKeyboardButton(text="Обмен",     callback_data="swap",     icon_custom_emoji_id=EMOJI_SWAP),
     )
 
     # Строка 4 — Купить/Продать | P2P Маркет
     builder.row(
-        InlineKeyboardButton(text="Купить/Продать", callback_data="buy_sell", custom_emoji_id=EMOJI_BUY_SELL),
-        InlineKeyboardButton(text="P2P Маркет",     callback_data="p2p",      custom_emoji_id=EMOJI_P2P),
+        InlineKeyboardButton(text="Купить/Продать", callback_data="buy_sell", icon_custom_emoji_id=EMOJI_BUY_SELL),
+        InlineKeyboardButton(text="P2P Маркет",     callback_data="p2p",      icon_custom_emoji_id=EMOJI_P2P),
     )
 
     # Строка 5 — Оплатить по QR | Показать ещё
     builder.row(
-        InlineKeyboardButton(text="Оплатить по QR", callback_data="qr_pay",    custom_emoji_id=EMOJI_QR),
-        InlineKeyboardButton(text="Показать ещё",   callback_data="show_more", custom_emoji_id=EMOJI_SHOW_MORE),
+        InlineKeyboardButton(text="Оплатить по QR", callback_data="qr_pay",    icon_custom_emoji_id=EMOJI_QR),
+        InlineKeyboardButton(text="Показать ещё",   callback_data="show_more", icon_custom_emoji_id=EMOJI_SHOW_MORE),
     )
+
     return builder.as_markup()
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    # Формируем текст приветствия
+    # Формируем текст приветствия с кастомным эмоджи ракеты
     welcome_text = (
-        '<tg-emoji emoji-id="5258332798409783582"></tg-emoji> xRocket — это бот-кошелёк для\n'
+        f'<tg-emoji emoji-id="{EMOJI_ROCKET}"></tg-emoji> xRocket — это бот-кошелёк для\n'
         'получения, отправки, покупки и хранения\n'
         'криптовалюты в Telegram.\n\n'
         f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
@@ -74,8 +74,8 @@ async def cmd_start(message: types.Message):
 
     keyboard = await build_keyboard()
 
-    # 1. Сначала ОТправляем сообщение
-    sent_message = await message.answer(
+    # 1. Сначала отправляем сообщение
+    await message.answer(
         text=welcome_text,
         reply_markup=keyboard,
         parse_mode="HTML",
