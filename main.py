@@ -11,7 +11,7 @@ CHANNEL_LINK = "https://t.me/project_ImpassL"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Кастомные эмоджи (ID)
+# Кастомные эмоджи (ID) для кнопок меню
 EMOJI_ROCKET       = "5258332798409783582"
 EMOJI_WALLET       = "5379639755933781390"
 EMOJI_DEPOSIT      = "5222153011815553801"
@@ -23,25 +23,14 @@ EMOJI_P2P          = "5380002586181015442"
 EMOJI_QR           = "5361580286037499439"
 EMOJI_SHOW_MORE    = "5379800318991177888"
 
-# Эмоджи для экрана кошелька
-EMOJI_COIN_USDT    = "5413877074848932790"
-EMOJI_COIN_GRAM    = "5294028881492226080"
-EMOJI_COIN_CES     = "5247162782473808472"
-EMOJI_COIN_XROCK   = "5287770667465337224"
-EMOJI_COIN_USDC    = "5453937927035840798"
-EMOJI_COIN_SOL     = "5433727851050329182"
-EMOJI_COIN_ETH     = "5453866639168658609"
-EMOJI_COIN_TRX     = "5453889668783303273"
-EMOJI_COIN_BTC     = "5454111585448517733"
-
 # Обычные эмодзи для кнопок кошелька
 EMOJI_TRANSFER     = "🔄"
 EMOJI_SECURITY     = "🔗"
 
-# Ссылки на сайты валют
+# Ссылки на официальные сайты валют
 COIN_LINKS = {
     "gram": "https://ton.org",
-    "ces": "https://cescoin.io", 
+    "ces": "https://cescoin.io",
     "xrock": "https://xrocket.app",
     "usdc": "https://www.circle.com/usdc",
     "sol": "https://solana.com",
@@ -53,6 +42,7 @@ COIN_LINKS = {
 # ===== ЛОГИКА БАЛАНСОВ (ЗАГЛУШКА) =====
 def get_user_balance(user_id: int):
     """Возвращает словарь с балансами пользователя."""
+    # Здесь потом будет реальная база данных
     return {
         "usdt": 0.00,
         "gram": 0.00,
@@ -119,24 +109,36 @@ async def open_wallet(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     balance = get_user_balance(user_id)
     
-    usdt_display = f"{balance['usdt']:.2f}"
-    if balance['usdt'] > 0:
-        usdt_line = f'<tg-emoji emoji-id="{EMOJI_COIN_USDT}">💎</tg-emoji> USDT: {usdt_display} (${balance["usdt"]:.2f})'
+    # Логика отображения USDT (со скобками если есть баланс)
+    usdt_val = balance['usdt']
+    usdt_display = f"{usdt_val:.2f}"
+    if usdt_val > 0:
+        usdt_line = f'<tg-emoji emoji-id="5413877074848932790">🪙</tg-emoji> USDT: {usdt_display} (${usdt_val:.2f})'
     else:
-        usdt_line = f'<tg-emoji emoji-id="{EMOJI_COIN_USDT}">💎</tg-emoji> USDT: {usdt_display}'
+        usdt_line = f'<tg-emoji emoji-id="5413877074848932790">🪙</tg-emoji> USDT: {usdt_display}'
+
+    # Логика для остальных монет (ссылка + эмодзи + баланс + скобки с $ если баланс > 0)
+    def format_coin_line(emoji_id: str, code: str, name: str, val: float):
+        link = COIN_LINKS.get(code, "#")
+        display_val = f"{val:.2f}" if code in ["usdc", "sol", "eth", "trx", "btc"] else f"{val:.2f}" # Можно настроить точность
         
+        if val > 0:
+            return f'<a href="{link}"><tg-emoji emoji-id="{emoji_id}">🪙</tg-emoji> {name}</a>: {display_val} (${val:.2f})'
+        else:
+            return f'<a href="{link}"><tg-emoji emoji-id="{emoji_id}">🪙</tg-emoji> {name}</a>: {display_val}'
+
     lines = [
-        f'<b><tg-emoji emoji-id="{EMOJI_WALLET}">👛</tg-emoji> Мой кошелек</b>',
+        f'<b><tg-emoji emoji-id="5379639755933781390">👛</tg-emoji> Мой кошелек</b>',
         '',
         usdt_line,
-        f'<a href="{COIN_LINKS["gram"]}"><tg-emoji emoji-id="{EMOJI_COIN_GRAM}">🌱</tg-emoji> GRAM</a>: {balance["gram"]:.2f}',
-        f'<a href="{COIN_LINKS["ces"]}"><tg-emoji emoji-id="{EMOJI_COIN_CES}">⚡</tg-emoji> CES</a>: {balance["ces"]:.2f}',
-        f'<a href="{COIN_LINKS["xrock"]}"><tg-emoji emoji-id="{EMOJI_COIN_XROCK}">🚀</tg-emoji> XROCK</a>: {balance["xrock"]:.2f}',
-        f'<a href="{COIN_LINKS["usdc"]}"><tg-emoji emoji-id="{EMOJI_COIN_USDC}">💵</tg-emoji> USDC</a>: {balance["usdc"]:.2f}',
-        f'<a href="{COIN_LINKS["sol"]}"><tg-emoji emoji-id="{EMOJI_COIN_SOL}">☀️</tg-emoji> SOL</a>: {balance["sol"]:.2f}',
-        f'<a href="{COIN_LINKS["eth"]}"><tg-emoji emoji-id="{EMOJI_COIN_ETH}">💠</tg-emoji> ETH</a>: {balance["eth"]:.2f}',
-        f'<a href="{COIN_LINKS["trx"]}"><tg-emoji emoji-id="{EMOJI_COIN_TRX}">🔺</tg-emoji> TRX</a>: {balance["trx"]:.2f}',
-        f'<a href="{COIN_LINKS["btc"]}"><tg-emoji emoji-id="{EMOJI_COIN_BTC}">🟠</tg-emoji> BTC</a>: {balance["btc"]:.2f}',
+        format_coin_line("5294028881492226080", "gram", "GRAM", balance["gram"]),
+        format_coin_line("5247162782473808472", "ces", "CES", balance["ces"]),
+        format_coin_line("5287770667465337224", "xrock", "XROCK", balance["xrock"]),
+        format_coin_line("5453937927035840798", "usdc", "USDC", balance["usdc"]),
+        format_coin_line("5433727851050329182", "sol", "SOL", balance["sol"]),
+        format_coin_line("5453866639168658609", "eth", "ETH", balance["eth"]),
+        format_coin_line("5453889668783303273", "trx", "TRX", balance["trx"]),
+        format_coin_line("5454111585448517733", "btc", "BTC", balance["btc"]),
         '',
         f'≈ {balance["total_usd"]:.2f} $',
         '',
