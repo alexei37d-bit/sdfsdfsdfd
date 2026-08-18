@@ -59,26 +59,12 @@ async def build_keyboard():
         InlineKeyboardButton(text="Оплатить по QR", callback_data="qr_pay",    custom_emoji_id=EMOJI_QR),
         InlineKeyboardButton(text="Показать ещё",   callback_data="show_more", custom_emoji_id=EMOJI_SHOW_MORE),
     )
-
-    # Строка 6 — Открыть приложение (Web App)
-    builder.row(InlineKeyboardButton(
-        text="Открыть приложение",
-        web_app=WebAppInfo(url="https://t.me/xRocketBot/app"),
-        custom_emoji_id=EMOJI_ROCKET,
-    ))
-
     return builder.as_markup()
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    # Удаляем сообщение пользователя /start
-    try:
-        await message.delete()
-    except Exception:
-        pass
-
-    # Формируем текст приветствия (используем одинарные кавычки для href)
+    # Формируем текст приветствия
     welcome_text = (
         '<tg-emoji emoji-id="5258332798409783582"></tg-emoji> xRocket — это бот-кошелёк для\n'
         'получения, отправки, покупки и хранения\n'
@@ -88,11 +74,18 @@ async def cmd_start(message: types.Message):
 
     keyboard = await build_keyboard()
 
-    await message.answer(
+    # 1. Сначала ОТправляем сообщение
+    sent_message = await message.answer(
         text=welcome_text,
         reply_markup=keyboard,
         parse_mode="HTML",
     )
+
+    # 2. Только потом удаляем /start
+    try:
+        await message.delete()
+    except Exception:
+        pass
 
 
 async def main():
