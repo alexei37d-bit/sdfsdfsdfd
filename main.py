@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command, CallbackData
+from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -35,9 +35,8 @@ EMOJI_COIN_TRX     = "5453889668783303273"
 EMOJI_COIN_BTC     = "5454111585448517733"
 
 # Обычные эмодзи для кнопок кошелька (где нет премиум)
-EMOJI_TRANSFER     = "🔄" 
+EMOJI_TRANSFER     = "🔄"
 EMOJI_SECURITY     = "🔗"
-
 
 # ===== ЛОГИКА БАЛАНСОВ (ЗАГЛУШКА) =====
 # Здесь ты потом подключишь реальную базу данных или API
@@ -57,44 +56,35 @@ def get_user_balance(user_id: int):
         "total_usd": 0.00
     }
 
-
 async def build_wallet_keyboard():
     """Клавиатура для экрана кошелька."""
     builder = InlineKeyboardBuilder()
-    
     # Строка 1: Пополнение | Вывод
     builder.row(
         InlineKeyboardButton(text="Пополнение", callback_data="deposit", icon_custom_emoji_id=EMOJI_DEPOSIT),
         InlineKeyboardButton(text="Вывод",      callback_data="withdraw", icon_custom_emoji_id=EMOJI_WITHDRAW),
     )
-    
     # Строка 2: Общий баланс (заглушка, можно убрать или сделать инфо-кнопкой)
     builder.row(InlineKeyboardButton(text="Общий баланс", callback_data="total_balance"))
-    
     # Строка 3: Перевод между балансами
     builder.row(InlineKeyboardButton(text=f"{EMOJI_TRANSFER} Перевод между балансами", callback_data="transfer"))
-    
     # Строка 4: Повысить безопасность
     builder.row(InlineKeyboardButton(text=f"{EMOJI_SECURITY} Повысить безопасность", callback_data="security"))
-    
     # Строка 5: Отображение балансов
     builder.row(InlineKeyboardButton(text="Отображение балансов", callback_data="display_settings", icon_custom_emoji_id=EMOJI_WALLET))
-    
     # Строка 7: Назад
     builder.row(InlineKeyboardButton(text="‹ Назад", callback_data="back_to_menu"))
-    
     return builder.as_markup()
-
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     welcome_text = (
-        f'<tg-emoji emoji-id=\"5258332798409783582\">🚀</tg-emoji> xRocket — это бот-кошелёк для\n'
+        f'<tg-emoji emoji-id="{EMOJI_ROCKET}"></tg-emoji> xRocket — это бот-кошелёк для\n'
         'получения, отправки, покупки и хранения\n'
         'криптовалюты в Telegram.\n\n'
         f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
     )
-
+    
     # Главное меню
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Кошелёк · 0.00 $", callback_data="open_wallet", icon_custom_emoji_id=EMOJI_WALLET))
@@ -114,13 +104,12 @@ async def cmd_start(message: types.Message):
         InlineKeyboardButton(text="Оплатить по QR", callback_data="qr_pay",    icon_custom_emoji_id=EMOJI_QR),
         InlineKeyboardButton(text="Показать ещё",   callback_data="show_more", icon_custom_emoji_id=EMOJI_SHOW_MORE),
     )
-
+    
     await message.answer(text=welcome_text, reply_markup=builder.as_markup(), parse_mode="HTML")
     try:
         await message.delete()
     except Exception:
         pass
-
 
 @dp.callback_query(lambda c: c.data == "open_wallet")
 async def open_wallet(callback: types.CallbackQuery):
@@ -133,7 +122,7 @@ async def open_wallet(callback: types.CallbackQuery):
         usdt_line = f'<tg-emoji emoji-id="{EMOJI_COIN_USDT}"></tg-emoji> USDT: {usdt_display} (${balance["usdt"]:.2f})'
     else:
         usdt_line = f'<tg-emoji emoji-id="{EMOJI_COIN_USDT}"></tg-emoji> USDT: {usdt_display}'
-
+        
     # Остальные монеты всегда без скобок (по ТЗ)
     lines = [
         f'<b><tg-emoji emoji-id="{EMOJI_WALLET}"></tg-emoji> Мой кошелек</b>',
@@ -165,7 +154,6 @@ async def open_wallet(callback: types.CallbackQuery):
     await callback.message.answer(text=wallet_text, reply_markup=keyboard, parse_mode="HTML")
     await callback.answer()
 
-
 @dp.callback_query(lambda c: c.data == "back_to_menu")
 async def back_to_menu(callback: types.CallbackQuery):
     # Возврат в главное меню
@@ -175,7 +163,7 @@ async def back_to_menu(callback: types.CallbackQuery):
         'криптовалюты в Telegram.\n\n'
         f'Обо всех возможностях читай в <a href="{CHANNEL_LINK}">официальном канале</a>'
     )
-
+    
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Кошелёк · 0.00 $", callback_data="open_wallet", icon_custom_emoji_id=EMOJI_WALLET))
     builder.row(
@@ -203,17 +191,14 @@ async def back_to_menu(callback: types.CallbackQuery):
     await callback.message.answer(text=welcome_text, reply_markup=builder.as_markup(), parse_mode="HTML")
     await callback.answer()
 
-
 # Заглушки для остальных кнопок, чтобы бот не падал
 @dp.callback_query(lambda c: True)
 async def dummy_callback(callback: types.CallbackQuery):
     await callback.answer("Раздел в разработке 🚧", show_alert=True)
 
-
 async def main():
     print("✅ Бот запущен! Отправьте /start для проверки.")
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
