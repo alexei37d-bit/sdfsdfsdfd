@@ -70,19 +70,20 @@ def get_wallet_text(user_id: int):
     # Форматируем общий баланс
     total_btc_formatted = format_balance(total_btc)
     
- text = (
-        f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
-        f"<tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> <a href=\"{crypto_websites['USDT']}\">Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
-        f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> <a href=\"{crypto_websites['GRAM']}\">Gram</a>: {format_balance(b['GRAM'])} GRAM\n\n"
-        f"<tg-emoji emoji-id=\"5407016676342401484\">☺️</tg-emoji> <a href=\"{crypto_websites['SOL']}\">Solana</a>: {format_balance(b['SOL'])} SOL\n\n"
-        f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> <a href=\"{crypto_websites['TRX']}\">TRON</a>: {format_balance(b['TRX'])} TRX\n\n"
-        f"<tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> <a href=\"{crypto_websites['BTC']}\">Bitcoin</a>: {format_balance(b['BTC'])} BTC\n\n"
-        f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> <a href=\"{crypto_websites['ETH']}\">Ethereum</a>: {format_balance(b['ETH'])} ETH\n\n"
-        f"<tg-emoji emoji-id=\"5406581441536495663\">🐶</tg-emoji> <a href=\"{crypto_websites['DOGE']}\">Dogecoin</a>: {format_balance(b['DOGE'])} DOGE\n\n"
-        f"<tg-emoji emoji-id=\"5407128573125366746\">☺️</tg-emoji> <a href=\"{crypto_websites['LTC']}\">Litecoin</a>: {format_balance(b['LTC'])} LTC\n\n"
-        f"<tg-emoji emoji-id=\"5406671889252781489\">☺️</tg-emoji> <a href=\"{crypto_websites['BNB']}\">Binance Coin</a>: {format_balance(b['BNB'])} BNB\n\n"
-        f"<tg-emoji emoji-id=\"5406575600380974539\">☺️</tg-emoji> <a href=\"{crypto_websites['USDC']}\">USD Coin</a>: {format_balance(b['USDC'])} USDC\n\n"
-        f"<tg-emoji emoji-id=\"5407080001340215945\">😊</tg-emoji> <a href=\"{crypto_websites['XAUT']}\">Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
+    # Используем одинарные кавычки внутри f-строки для HTML атрибутов
+    text = (
+        f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
+        f"<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji> <a href='{crypto_websites['USDT']}'>Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
+        f"<tg-emoji emoji-id='5318901904686754959'>🙂</tg-emoji> <a href='{crypto_websites['GRAM']}'>Gram</a>: {format_balance(b['GRAM'])} GRAM\n\n"
+        f"<tg-emoji emoji-id='5407016676342401484'>☺️</tg-emoji> <a href='{crypto_websites['SOL']}'>Solana</a>: {format_balance(b['SOL'])} SOL\n\n"
+        f"<tg-emoji emoji-id='5406978786140918829'>☺️</tg-emoji> <a href='{crypto_websites['TRX']}'>TRON</a>: {format_balance(b['TRX'])} TRX\n\n"
+        f"<tg-emoji emoji-id='5409133571233319295'>☺️</tg-emoji> <a href='{crypto_websites['BTC']}'>Bitcoin</a>: {format_balance(b['BTC'])} BTC\n\n"
+        f"<tg-emoji emoji-id='5406930321729948822'>☺️</tg-emoji> <a href='{crypto_websites['ETH']}'>Ethereum</a>: {format_balance(b['ETH'])} ETH\n\n"
+        f"<tg-emoji emoji-id='5406581441536495663'>🐶</tg-emoji> <a href='{crypto_websites['DOGE']}'>Dogecoin</a>: {format_balance(b['DOGE'])} DOGE\n\n"
+        f"<tg-emoji emoji-id='5407128573125366746'>☺️</tg-emoji> <a href='{crypto_websites['LTC']}'>Litecoin</a>: {format_balance(b['LTC'])} LTC\n\n"
+        f"<tg-emoji emoji-id='5406671889252781489'>☺️</tg-emoji> <a href='{crypto_websites['BNB']}'>Binance Coin</a>: {format_balance(b['BNB'])} BNB\n\n"
+        f"<tg-emoji emoji-id='5406575600380974539'>☺️</tg-emoji> <a href='{crypto_websites['USDC']}'>USD Coin</a>: {format_balance(b['USDC'])} USDC\n\n"
+        f"<tg-emoji emoji-id='5407080001340215945'>😊</tg-emoji> <a href='{crypto_websites['XAUT']}'>Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
         f"≈ {total_btc_formatted} BTC"
     )
     return text
@@ -124,14 +125,14 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
-     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
+    text = (
+        "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji>    "
+        "<a href='https://t.me/Crypto_Bot_RUSSIA/1'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
+        "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
+        "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
     await message.answer(
         text,
@@ -153,13 +154,13 @@ async def open_wallet(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
+        "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji>    "
+        "<a href='https://t.me/Crypto_Bot_RUSSIA/1'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
+        "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
+        "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
     await callback.message.edit_text(
         text,
