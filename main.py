@@ -115,7 +115,7 @@ async def send_welcome(message: types.Message):
         reply_markup=main_keyboard
     )
 
-@dp.callback_query(lambda c: c.data == "wallet")
+@dp.callback_query(lambda c: lambda c: c.data == "wallet")
 async def open_wallet(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_wallet_text(callback.from_user.id),
