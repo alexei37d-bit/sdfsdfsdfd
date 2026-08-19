@@ -5,7 +5,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Токен бота
 BOT_TOKEN = '8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8'
-
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -27,8 +26,7 @@ user_balances = {
 # Функция для получения текста баланса
 def get_wallet_text(user_id: int):
     # Для примера берем баланс из словаря (в реальном боте тут будет запрос к БД)
-    b = user_balances 
-    
+    b = user_balances
     # Расчет общего баланса в BTC (условный курс для примера)
     total_btc = (
         b["USDT"] * 0.00001 + 
@@ -43,7 +41,6 @@ def get_wallet_text(user_id: int):
         b["USDC"] * 0.00001 + 
         b["XAUT"] * 0.03
     )
-    
     text = (
         f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
         f"<tg-emoji emoji-id=\"5406841020769936275\">️</tg-emoji> Tether: {b['USDT']:.8f} USDT\n"
@@ -99,15 +96,14 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
+        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>  "
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
+        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
         "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>."
     )
-    
     await message.answer(
         text,
         parse_mode='HTML',
@@ -126,16 +122,15 @@ async def open_wallet(callback: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
-     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
+    text = (
+        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>  "
+        "<a href=\"https://t.me/CryptoBotRU/14\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "отправляйте и платите криптовалютой,\n"
+        "<a href=\"https://t.me/CryptoBotRU/228\">отправляйте</a> и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>."
+        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
+        "<a href=\"https://t.me/CryptoBotRussian\">наш чат</a>."
     )
-    
     await callback.message.edit_text(
         text,
         parse_mode='HTML',
