@@ -1,64 +1,66 @@
 import asyncio
+import random
+import string
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from database import Database  # Импортируем наш класс БД
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from database import Database
 
-# Токен бота
+# --- КОНФИГУРАЦИЯ ---
 BOT_TOKEN = '8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-
-# Инициализация базы данных
 db = Database()
 
-# Ссылки на официальные сайты криптовалют
+# Ссылки на сайты (для генерации ссылок в чеках и кошельке)
 crypto_websites = {
-    "USDT": "https://tether.to",
-    "GRAM": "https://ton.org",
-    "SOL": "https://solana.com",
-    "TRX": "https://tron.network",
-    "BTC": "https://bitcoin.org",
-    "ETH": "https://ethereum.org",
-    "DOGE": "https://dogecoin.com",
-    "LTC": "https://litecoin.org",
-    "BNB": "https://www.bnbchain.org",
-    "USDC": "https://www.centre.io/usdc",
-    "XAUT": "https://tether.to/en/tether-gold/"
+    "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
+    "TRX": "https://tron.network", "BTC": "https://bitcoin.org", "ETH": "https://ethereum.org",
+    "DOGE": "https://dogecoin.com", "LTC": "https://litecoin.org", "BNB": "https://www.bnbchain.org",
+    "USDC": "https://www.centre.io/usdc", "XAUT": "https://tether.to/en/tether-gold/"
 }
 
-# Функция для форматирования баланса
+# Курсы к USD для отображения (примерные)
+USD_RATES = {
+    "USDT": 1.0, "USDC": 1.0, "BTC": 65000, "ETH": 3500, "SOL": 150,
+    "GRAM": 0.007, "TRX": 0.12, "DOGE": 0.15, "LTC": 70, "BNB": 600, "XAUT": 2300
+}
+
+# --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 def format_balance(value):
-    if value == 0:
-        return "0"
-    formatted = f"{value:.8f}".rstrip('0').rstrip('.')
-    return formatted
+    if value == 0: return "0"
+    return f"{value:.8f}".rstrip('0').rstrip('.')
 
-# Функция для получения текста баланса из БД
-def get_wallet_text(user_id: int):
-    # Получаем данные из базы
-    b = db.get_all_balances(user_id)
-    
-    # Если пользователь новый, может вернуться пустой словарь, обработаем это
-    if not b:
-        b = {k: 0.0 for k in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]}
+def get_usd_value(amount, currency):
+    rate = USD_RATES.get(currency, 0)
+    val = amount * rate
+    if val < 0.01: return "< 0.01"
+    return f"{val:.2f}"
 
-    # Расчет общего баланса в BTC (условный курс)
-    total_btc = (
-        b["USDT"] * 0.00001 +
-        b["GRAM"] * 0.0000001 +
-        b["SOL"] * 0.002 +
-        b["TRX"] * 0.000002 +
-        b["BTC"] +
-        b["ETH"] * 0.03 +
-        b["DOGE"] * 0.000001 +
-        b["LTC"] * 0.001 +
-        b["BNB"] * 0.005 +
-        b["USDC"] * 0.00001 +
-        b["XAUT"] * 0.03
+async def generate_check_image(currency: str, amount: float):
+    usd_val = get_usd_value(amount, currency)
+    url = (
+        f"https://imggen.send.tg/checks/image?"
+        f"asset={currency}&asset_amount={amount}"
+        f"&fiat=USD&fiat_amount={usd_val}"
+        f"&main=asset&v4"
     )
+    return url
+
+# --- ТЕКСТЫ И КЛАВИАТУРЫ (ИЗ MAIN 9 С ПРЕМИУМ ЭМОДЗИ) ---
+
+def get_wallet_text(user_id: int):
+    b = db.get_all_balances(user_id)
+    if not b: 
+        b = {k: 0.0 for k in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]}
     
-    total_btc_formatted = format_balance(total_btc)
+    total_btc = sum([
+        b["USDT"]*0.00001, b["GRAM"]*0.0000001, b["SOL"]*0.002, b["TRX"]*0.000002,
+        b["BTC"], b["ETH"]*0.03, b["DOGE"]*0.000001, b["LTC"]*0.001,
+        b["BNB"]*0.005, b["USDC"]*0.00001, b["XAUT"]*0.03
+    ])
     
     text = (
         f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
@@ -73,11 +75,11 @@ def get_wallet_text(user_id: int):
         f"<tg-emoji emoji-id='5406671889252781489'>☺️</tg-emoji> <a href='{crypto_websites['BNB']}'>Binance Coin</a>: {format_balance(b['BNB'])} BNB\n\n"
         f"<tg-emoji emoji-id='5406575600380974539'>☺️</tg-emoji> <a href='{crypto_websites['USDC']}'>USD Coin</a>: {format_balance(b['USDC'])} USDC\n\n"
         f"<tg-emoji emoji-id='5407080001340215945'>😊</tg-emoji> <a href='{crypto_websites['XAUT']}'>Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
-        f"≈ {total_btc_formatted} BTC"
+        f"≈ {format_balance(total_btc)} BTC"
     )
     return text
 
-# Клавиатура главного меню
+# Главное меню с Premium эмодзи (из main 9)
 main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Кошелёк", callback_data="wallet", icon_custom_emoji_id="5310191758255099001"),
@@ -101,22 +103,28 @@ main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     ]
 ])
 
-# Клавиатура кошелька
 wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [
-        InlineKeyboardButton(text="Пополнить", callback_data="deposit"),
-        InlineKeyboardButton(text="Вывести", callback_data="withdraw")
-    ],
-    [
-        InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")
-    ]
+    [InlineKeyboardButton(text="Пополнить", callback_data="deposit"), InlineKeyboardButton(text="Вывести", callback_data="withdraw")],
+    [InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")]
 ])
+
+# --- FSM ДЛЯ ЧЕКОВ ---
+class CheckCreation(StatesGroup):
+    waiting_for_amount = State()
+    selected_currency = State()
+
+# --- ХЕНДЛЕРЫ ---
 
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
-    # Добавляем пользователя в БД при первом запуске
     db.add_user(message.from_user.id)
-    
+    # Проверяем, не является ли это активацией чека
+    args = message.text.split()
+    if len(args) > 1 and args[1].startswith("check_"):
+        check_id = args[1].replace("check_", "")
+        await activate_check_logic(message, check_id)
+        return
+
     text = (
         "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji> "
         "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
@@ -126,21 +134,11 @@ async def send_welcome(message: types.Message):
         "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
         "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
-    await message.answer(
-        text,
-        parse_mode='HTML',
-        disable_web_page_preview=True,
-        reply_markup=main_keyboard
-    )
+    await message.answer(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
 
 @dp.callback_query(lambda c: c.data == "wallet")
 async def open_wallet(callback: types.CallbackQuery):
-    await callback.message.edit_text(
-        get_wallet_text(callback.from_user.id),
-        parse_mode='HTML',
-        disable_web_page_preview=True,
-        reply_markup=wallet_keyboard
-    )
+    await callback.message.edit_text(get_wallet_text(callback.from_user.id), parse_mode='HTML', disable_web_page_preview=True, reply_markup=wallet_keyboard)
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
@@ -154,38 +152,360 @@ async def back_to_main(callback: types.CallbackQuery):
         "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
         "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
-    await callback.message.edit_text(
-        text,
-        parse_mode='HTML',
-        disable_web_page_preview=True,
-        reply_markup=main_keyboard
-    )
+    await callback.message.edit_text(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
     await callback.answer()
 
-# Пример команды для теста пополнения (только для вас)
-@dp.message(Command("add_money"))
-async def test_add_money(message: types.Message):
-    # Команда: /add_money USDT 100
-    args = message.text.split()
-    if len(args) != 3:
-        await message.answer("Использование: /add_money <валюта> <сумма>")
-        return
+# ================= СИСТЕМА ЧЕКОВ =================
+
+# 1. Меню чеков
+@dp.callback_query(lambda c: c.data == "checks")
+async def checks_menu(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    active_checks = db.get_user_checks(user_id)
+    text = (
+        "Здесь вы можете создавать чек для мгновенной отправки криптовалюты любому пользователю.\n"
+        "<a href='https://telegra.ph/Checks-Instruction'>Смотреть инструкцию ›</a>"
+    )
+    buttons = [
+        [InlineKeyboardButton(text="Создать чек", callback_data="create_check_start")],
+        [InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")]
+    ]
+    if active_checks:
+        buttons.insert(1, [InlineKeyboardButton(text=f"📂 Активные чеки ({len(active_checks)})", callback_data="my_active_checks")])
     
-    currency = args[1].upper()
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.edit_text(text, parse_mode='HTML', reply_markup=kb)
+    await callback.answer()
+
+# 2. Начало создания чека
+@dp.callback_query(lambda c: c.data == "create_check_start")
+async def create_check_start(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    balances = db.get_all_balances(user_id)
+    
+    available_currencies = []
+    for curr, bal in balances.items():
+        if curr == 'user_id': continue
+        usd_val = bal * USD_RATES.get(curr, 0)
+        if usd_val >= 0.02:
+            available_currencies.append((curr, bal))
+            
+    if not available_currencies:
+        text = "Недостаточно монет. Сумма одного чека не может быть меньше чем $0.02.\nСначала пополните баланс!"
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="‹ Назад к чекам", callback_data="checks")]])
+        await callback.message.edit_text(text, reply_markup=kb)
+    else:
+        text = "Выберите криптовалюту для создания чека:"
+        rows = []
+        temp_row = []
+        for curr, bal in available_currencies:
+            btn_text = f"{curr} ({format_balance(bal)})"
+            temp_row.append(InlineKeyboardButton(text=btn_text, callback_data=f"select_check_curr_{curr}"))
+            if len(temp_row) == 2:
+                rows.append(temp_row)
+                temp_row = []
+        if temp_row: rows.append(temp_row)
+        rows.append([InlineKeyboardButton(text="‹ Назад к чекам", callback_data="checks")])
+        
+        kb = InlineKeyboardMarkup(inline_keyboard=rows)
+        await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+# 3. Выбор валюты (FSM)
+@dp.callback_query(lambda c: c.data.startswith("select_check_curr_"))
+async def select_check_currency_fsm(callback: types.CallbackQuery, state: FSMContext):
+    currency = callback.data.split("_")[-1]
+    await state.set_state(CheckCreation.waiting_for_amount)
+    await state.update_data(selected_currency=currency)
+    
+    text = f"Пришлите сумму чека в {currency}.\nЕсли вы хотите создать мультичек, введите кратную вашему балансу сумму одной активации."
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="‹ Назад", callback_data="checks")]])
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+# 4. Обработка суммы
+@dp.message(CheckCreation.waiting_for_amount)
+async def process_check_amount(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    currency = data.get("selected_currency")
+    
     try:
-        amount = float(args[2])
+        amount = float(message.text.replace(',', '.'))
     except ValueError:
-        await message.answer("Сумма должна быть числом")
+        await message.answer("Пожалуйста, введите число.")
         return
         
-    if currency in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]:
-        db.update_balance(message.from_user.id, currency, amount)
-        await message.answer(f"Добавлено {amount} {currency} на ваш баланс!")
-    else:
-        await message.answer("Неизвестная валюта")
+    min_amount_usd = 0.02
+    current_usd = amount * USD_RATES.get(currency, 0)
+    
+    if current_usd < min_amount_usd:
+        await message.answer(f"Минимальная сумма чека $0.02. Для {currency} это примерно {min_amount_usd / USD_RATES.get(currency, 1):.4f}.")
+        return
+        
+    balance = db.get_balance(message.from_user.id, currency)
+    if balance < amount:
+        await message.answer("Недостаточно средств на балансе.")
+        await state.clear()
+        return
+        
+    # Списание и создание
+    db.update_balance(message.from_user.id, currency, -amount)
+    check_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    db.create_check(check_id, message.from_user.id, currency, amount)
+    
+    img_url = await generate_check_image(currency, amount)
+    usd_val = get_usd_value(amount, currency)
+    
+    caption = (
+        f"<b>Чек</b>\n\n"
+        f"Сумма: {amount} {currency} (${usd_val})\n\n"
+        f"Любой может активировать этот чек.\n\n"
+        f"Скопируйте ссылку, чтобы поделиться чеком:\n"
+        f"<code>https://t.me/{bot.username}?start=check_{check_id}</code>\n\n"
+        f"⚠️ Никогда не делайте скриншот вашего чека и не отправляйте его никому!"
+    )
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Конвертировать в подарок", callback_data="convert_gift")],
+        [InlineKeyboardButton(text="Поделиться чеком", switch_inline_query=check_id)],
+        [InlineKeyboardButton(text="Показать QR-код", callback_data=f"show_qr_{check_id}")],
+        [InlineKeyboardButton(text="Удалить чек", callback_data=f"delete_check_{check_id}")],
+        [InlineKeyboardButton(text="‹ Назад к списку чеков", callback_data="my_active_checks")]
+    ])
+    
+    await message.answer_photo(photo=img_url, caption=caption, parse_mode='HTML', reply_markup=kb)
+    await state.clear()
 
-@dp.callback_query(lambda c: c.data in ["exchange", "p2p", "market", "checks", "invoices", "cryptopay", "giveaways", "subscriptions", "settings", "deposit", "withdraw"])
-async def placeholder_callback(callback: types.CallbackQuery):
+# 5. Список активных чеков
+@dp.callback_query(lambda c: c.data == "my_active_checks")
+async def my_active_checks(callback: types.CallbackQuery):
+    checks = db.get_user_checks(callback.from_user.id)
+    if not checks:
+        await callback.answer("У вас нет активных чеков", show_alert=True)
+        return
+        
+    rows = []
+    for check in checks[:10]:
+        usd_val = get_usd_value(check['amount'], check['currency'])
+        btn_text = f"{check['currency']} {check['amount']} (${usd_val})"
+        rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"manage_check_{check['id']}")])
+        
+    rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="checks")])
+    kb = InlineKeyboardMarkup(inline_keyboard=rows)
+    await callback.message.edit_text("Ваши активные чеки:", reply_markup=kb)
+    await callback.answer()
+
+# 6. Управление чеком
+@dp.callback_query(lambda c: c.data.startswith("manage_check_"))
+async def manage_check(callback: types.CallbackQuery):
+    check_id = callback.data.split("_")[-1]
+    check = db.get_check(check_id)
+    
+    if not check or check['creator_id'] != callback.from_user.id:
+        await callback.answer("Чек не найден", show_alert=True)
+        return
+        
+    img_url = await generate_check_image(check['currency'], check['amount'])
+    usd_val = get_usd_value(check['amount'], check['currency'])
+    
+    caption = (
+        f"<b>Чек</b>\n\n"
+        f"Сумма: {check['amount']} {check['currency']} (${usd_val})\n\n"
+        f"Ссылка: <code>https://t.me/{bot.username}?start=check_{check_id}</code>"
+    )
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поделиться чеком", switch_inline_query=check_id)],
+        [InlineKeyboardButton(text="Удалить чек", callback_data=f"delete_check_{check_id}")],
+        [InlineKeyboardButton(text="‹ Назад к списку чеков", callback_data="my_active_checks")]
+    ])
+    
+    try:
+        await callback.message.edit_media(media=InputMediaPhoto(media=img_url, caption=caption, parse_mode='HTML'), reply_markup=kb)
+    except Exception:
+        await callback.message.edit_text(caption, parse_mode='HTML', reply_markup=kb)
+    await callback.answer()
+
+# 7. Удаление чека
+@dp.callback_query(lambda c: c.data.startswith("delete_check_"))
+async def delete_check(callback: types.CallbackQuery):
+    check_id = callback.data.split("_")[-1]
+    # Получаем данные перед удалением для возврата средств
+    check = db.get_check(check_id)
+    if check and check['creator_id'] == callback.from_user.id:
+        db.delete_check(check_id, callback.from_user.id)
+        # Возврат средств
+        db.update_balance(callback.from_user.id, check['currency'], check['amount'])
+        await callback.message.delete()
+        await callback.answer("Чек удален. Средства возвращены.", show_alert=True)
+    else:
+        await callback.answer("Ошибка или чек уже удален", show_alert=True)
+
+# 8. АКТИВАЦИЯ ЧЕКА
+async def activate_check_logic(message: types.Message, check_id: str):
+    check = db.get_check(check_id)
+    if not check or not check['is_active']:
+        await message.answer("Чек недействителен.")
+        return
+        
+    activator_id = message.from_user.id
+    if activator_id == check['creator_id']:
+        await message.answer("Это ваш чек.")
+        return
+        
+    db.update_balance(activator_id, check['currency'], check['amount'])
+    db.activate_check(check_id, activator_id)
+    
+    usd_val = get_usd_value(check['amount'], check['currency'])
+    await message.answer(
+        f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
+        f"<b>{check['amount']} {check['currency']}</b> (<b>${usd_val}</b>)",
+        parse_mode='HTML'
+    )
+    
+    # Уведомление создателю
+    creator_id = check['creator_id']
+    notify_text = (
+        f"<tg-emoji emoji-id='5311998535032409760'>🎁</tg-emoji> "
+        f"<a href='tg://user?id={activator_id}'>{message.from_user.first_name}</a> активировал(а) ваш чек "
+        f"и получил(а) <b>{check['amount']} {check['currency']}</b> (<b>${usd_val}</b>)"
+    )
+    try:
+        await bot.send_message(creator_id, notify_text, parse_mode='HTML')
+    except:
+        pass
+
+# Инлайн режим (Объединенная логика: Создание если число, Активация если ID)
+@dp.inline_query(lambda q: True)
+async def inline_handler(query: types.InlineQuery):
+    text = query.query.strip()
+    user_id = query.from_user.id
+    results = []
+    
+    # Попытка интерпретировать как создание чека (число)
+    try:
+        amount = float(text)
+        if amount > 0:
+            balances = db.get_all_balances(user_id)
+            for curr, bal in balances.items():
+                if curr == 'user_id': continue
+                if bal >= amount:
+                    usd_val = get_usd_value(amount, curr)
+                    results.append(types.InlineQueryResultArticle(
+                        id=f"create_{curr}_{amount}",
+                        title=f"Чек на {amount} {curr}",
+                        description=f"Баланс: {bal} {curr} (${get_usd_value(bal, curr)})",
+                        input_message_content=types.InputTextMessageContent(message_text=f"Создание чека на {amount} {curr}..."),
+                        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Создать чек", callback_data=f"inline_create_{curr}_{amount}")]])
+                    ))
+            if results:
+                await query.answer(results, cache_time=0, is_personal=True)
+                return
+    except ValueError:
+        pass
+        
+    # Если не число, проверяем на активацию чека
+    if text:
+        check = db.get_check(text)
+        if check and check['is_active']:
+            usd_val = get_usd_value(check['amount'], check['currency'])
+            results.append(types.InlineQueryResultArticle(
+                id=text,
+                title=f"Получить {check['amount']} {check['currency']}",
+                description=f"Сумма: ${usd_val}",
+                input_message_content=types.InputTextMessageContent(message_text=f"Активация чека на {check['amount']} {check['currency']}..."),
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Активировать", callback_data=f"activate_{text}")]])
+            ))
+            await query.answer(results, cache_time=0)
+            return
+            
+    # Если ничего не найдено
+    await query.answer([], cache_time=0)
+
+@dp.callback_query(lambda c: c.data.startswith("inline_create_"))
+async def process_inline_create(callback: types.CallbackQuery):
+    # Формат: inline_CREATE_CURRENCY_AMOUNT
+    data_part = callback.data.replace("inline_create_", "")
+    parts = data_part.split("_")
+    
+    # Валюта всегда первая, остальное - сумма (может содержать точки)
+    currency = parts[0]
+    amount_str = "_".join(parts[1:])
+    
+    try:
+        amount = float(amount_str)
+    except:
+        await callback.answer("Ошибка суммы", show_alert=True)
+        return
+        
+    user_id = callback.from_user.id
+    balance = db.get_balance(user_id, currency)
+    
+    if balance < amount:
+        await callback.answer("Недостаточно средств", show_alert=True)
+        return
+        
+    db.update_balance(user_id, currency, -amount)
+    check_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    db.create_check(check_id, user_id, currency, amount)
+    
+    img_url = await generate_check_image(currency, amount)
+    usd_val = get_usd_value(amount, currency)
+    
+    caption = (
+        f"<b>Чек</b>\n\n"
+        f"Сумма: {amount} {currency} (${usd_val})\n\n"
+        f"Ссылка: <code>https://t.me/{bot.username}?start=check_{check_id}</code>"
+    )
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поделиться чеком", switch_inline_query=check_id)],
+        [InlineKeyboardButton(text="Удалить чек", callback_data=f"delete_check_{check_id}")]
+    ])
+    
+    await callback.message.edit_media(media=InputMediaPhoto(media=img_url, caption=caption, parse_mode='HTML'), reply_markup=kb)
+    await callback.answer("Чек создан!")
+
+@dp.callback_query(lambda c: c.data.startswith("activate_"))
+async def activate_inline_callback(callback: types.CallbackQuery):
+    check_id = callback.data.replace("activate_", "")
+    check = db.get_check(check_id)
+    
+    if not check or not check['is_active']:
+        await callback.answer("Чек уже активирован!", show_alert=True)
+        return
+        
+    activator_id = callback.from_user.id
+    if activator_id == check['creator_id']:
+        await callback.answer("Вы не можете активировать свой чек!", show_alert=True)
+        return
+        
+    db.update_balance(activator_id, check['currency'], check['amount'])
+    db.activate_check(check_id, activator_id)
+    
+    usd_val = get_usd_value(check['amount'], check['currency'])
+    success_text = (
+        f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
+        f"<b>{check['amount']} {check['currency']}</b> "
+        f"(<b>${usd_val}</b>)"
+    )
+    await callback.message.edit_text(success_text, parse_mode='HTML')
+    
+    creator_id = check['creator_id']
+    notify_text = (
+        f"<tg-emoji emoji-id='5311998535032409760'>🎁</tg-emoji> "
+        f"<a href='tg://user?id={activator_id}'>{callback.from_user.first_name}</a> активировал(а) ваш чек "
+        f"и получил(а) <b>{check['amount']} {check['currency']}</b> (<b>${usd_val}</b>)"
+    )
+    try:
+        await bot.send_message(creator_id, notify_text, parse_mode='HTML')
+    except:
+        pass
+    await callback.answer("Чек активирован!")
+
+# Заглушки для остальных разделов
+@dp.callback_query(lambda c: c.data in ["exchange", "p2p", "market", "invoices", "cryptopay", "giveaways", "subscriptions", "settings", "deposit", "withdraw", "convert_gift"])
+async def placeholder(callback: types.CallbackQuery):
     await callback.answer(f"Раздел '{callback.data}' пока в разработке", show_alert=True)
 
 async def main():
@@ -193,7 +513,7 @@ async def main():
     try:
         await dp.start_polling(bot)
     finally:
-        db.close() # Закрываем БД при остановке
+        db.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
