@@ -23,10 +23,35 @@ user_balances = {
     "XAUT": 0.00000000
 }
 
+# Ссылки на официальные сайты криптовалют
+crypto_websites = {
+    "USDT": "https://tether.to",
+    "GRAM": "https://ton.org",
+    "SOL": "https://solana.com",
+    "TRX": "https://tron.network",
+    "BTC": "https://bitcoin.org",
+    "ETH": "https://ethereum.org",
+    "DOGE": "https://dogecoin.com",
+    "LTC": "https://litecoin.org",
+    "BNB": "https://www.bnbchain.org",
+    "USDC": "https://www.centre.io/usdc",
+    "XAUT": "https://tether.to/en/tether-gold/"
+}
+
+# Функция для форматирования баланса
+def format_balance(value):
+    """Форматирует баланс: если 0 - показывает '0', иначе показывает с точностью"""
+    if value == 0:
+        return "0"
+    # Убираем лишние нули в конце
+    formatted = f"{value:.8f}".rstrip('0').rstrip('.')
+    return formatted
+
 # Функция для получения текста баланса
 def get_wallet_text(user_id: int):
     # Для примера берем баланс из словаря (в реальном боте тут будет запрос к БД)
     b = user_balances
+    
     # Расчет общего баланса в BTC (условный курс для примера)
     total_btc = (
         b["USDT"] * 0.00001 +
@@ -41,20 +66,24 @@ def get_wallet_text(user_id: int):
         b["USDC"] * 0.00001 +
         b["XAUT"] * 0.03
     )
+    
+    # Форматируем общий баланс
+    total_btc_formatted = format_balance(total_btc)
+    
     text = (
         f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
-        f"<tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> Tether: {b['USDT']:.8f} USDT\n"
-        f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> Gram: {b['GRAM']:.8f} GRAM\n"
-        f"<tg-emoji emoji-id=\"5407016676342401484\">☺️</tg-emoji> Solana: {b['SOL']:.8f} SOL\n"
-        f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> TRON: {b['TRX']:.8f} TRX\n"
-        f"<tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> Bitcoin: {b['BTC']:.8f} BTC\n"
-        f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> Ethereum: {b['ETH']:.8f} ETH\n"
-        f"<tg-emoji emoji-id=\"5406581441536495663\">🐶</tg-emoji> Dogecoin: {b['DOGE']:.8f} DOGE\n"
-        f"<tg-emoji emoji-id=\"5407128573125366746\">☺️</tg-emoji> Litecoin: {b['LTC']:.8f} LTC\n"
-        f"<tg-emoji emoji-id=\"5406671889252781489\">☺️</tg-emoji> Binance Coin: {b['BNB']:.8f} BNB\n"
-        f"<tg-emoji emoji-id=\"5406575600380974539\">☺️</tg-emoji> USD Coin: {b['USDC']:.8f} USDC\n"
-        f"<tg-emoji emoji-id=\"5407080001340215945\">😊</tg-emoji> Tether Gold: {b['XAUT']:.8f} XAUT\n\n"
-        f"≈ {total_btc:.8f} BTC"
+        f"<a href=\"{crypto_websites['USDT']}\"><tg-emoji emoji-id=\"5406841020769936275\">️</tg-emoji> Tether</a>: {format_balance(b['USDT'])} USDT\n"
+        f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> Gram: {format_balance(b['GRAM'])} GRAM\n"
+        f"<a href=\"{crypto_websites['SOL']}\"><tg-emoji emoji-id=\"5407016676342401484\">️</tg-emoji> Solana</a>: {format_balance(b['SOL'])} SOL\n"
+        f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> TRON: {format_balance(b['TRX'])} TRX\n"
+        f"<a href=\"{crypto_websites['BTC']}\"><tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> Bitcoin</a>: {format_balance(b['BTC'])} BTC\n"
+        f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> Ethereum: {format_balance(b['ETH'])} ETH\n"
+        f"<a href=\"{crypto_websites['DOGE']}\"><tg-emoji emoji-id=\"5406581441536495663\">🐶</tg-emoji> Dogecoin</a>: {format_balance(b['DOGE'])} DOGE\n"
+        f"<tg-emoji emoji-id=\"5407128573125366746\">☺️</tg-emoji> Litecoin: {format_balance(b['LTC'])} LTC\n"
+        f"<a href=\"{crypto_websites['BNB']}\"><tg-emoji emoji-id=\"5406671889252781489\">☺️</tg-emoji> Binance Coin</a>: {format_balance(b['BNB'])} BNB\n"
+        f"<tg-emoji emoji-id=\"5406575600380974539\">☺️</tg-emoji> USD Coin: {format_balance(b['USDC'])} USDC\n"
+        f"<a href=\"{crypto_websites['XAUT']}\"><tg-emoji emoji-id=\"5407080001340215945\">😊</tg-emoji> Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
+        f"≈ {total_btc_formatted} BTC"
     )
     return text
 
@@ -96,13 +125,13 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>  "
+        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
         "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
         "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>."
+        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
     )
     await message.answer(
         text,
@@ -123,13 +152,13 @@ async def open_wallet(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>  "
+        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
         "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "<a href=\"https://t.me/Crypto_Bot_RUSSIA\">отправляйте</a> и платите криптовалютой,\n"
         "когда хотите.\n\n"
         "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>."
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>. "
     )
     await callback.message.edit_text(
         text,
