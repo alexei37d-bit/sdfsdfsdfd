@@ -124,12 +124,12 @@ async def open_wallet(callback: types.CallbackQuery):
 async def back_to_main(callback: types.CallbackQuery):
     text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>  "
-        "<a href=\"https://t.me/CryptoBotRU/14\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "<a href=\"https://t.me/CryptoBotRU/228\">отправляйте</a> и платите криптовалютой,\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA\">отправляйте</a> и платите криптовалютой,\n"
         "когда хотите.\n\n"
         "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/CryptoBotRussian\">наш чат</a>."
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>."
     )
     await callback.message.edit_text(
         text,
