@@ -72,17 +72,17 @@ def get_wallet_text(user_id: int):
     
     text = (
         f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
-        f"<a href=\"{crypto_websites['USDT']}\"><tg-emoji emoji-id=\"5406841020769936275\">️</tg-emoji> Tether</a>: {format_balance(b['USDT'])} USDT\n"
-        f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> Gram: {format_balance(b['GRAM'])} GRAM\n"
-        f"<a href=\"{crypto_websites['SOL']}\"><tg-emoji emoji-id=\"5407016676342401484\">️</tg-emoji> Solana</a>: {format_balance(b['SOL'])} SOL\n"
-        f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> TRON: {format_balance(b['TRX'])} TRX\n"
-        f"<a href=\"{crypto_websites['BTC']}\"><tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> Bitcoin</a>: {format_balance(b['BTC'])} BTC\n"
-        f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> Ethereum: {format_balance(b['ETH'])} ETH\n"
-        f"<a href=\"{crypto_websites['DOGE']}\"><tg-emoji emoji-id=\"5406581441536495663\">🐶</tg-emoji> Dogecoin</a>: {format_balance(b['DOGE'])} DOGE\n"
-        f"<tg-emoji emoji-id=\"5407128573125366746\">☺️</tg-emoji> Litecoin: {format_balance(b['LTC'])} LTC\n"
-        f"<a href=\"{crypto_websites['BNB']}\"><tg-emoji emoji-id=\"5406671889252781489\">☺️</tg-emoji> Binance Coin</a>: {format_balance(b['BNB'])} BNB\n"
-        f"<tg-emoji emoji-id=\"5406575600380974539\">☺️</tg-emoji> USD Coin: {format_balance(b['USDC'])} USDC\n"
-        f"<a href=\"{crypto_websites['XAUT']}\"><tg-emoji emoji-id=\"5407080001340215945\">😊</tg-emoji> Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
+        f"<tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> <a href=\"{crypto_websites['USDT']}\">Tether</a>: {format_balance(b['USDT'])} USDT\n"
+        f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> <a href=\"{crypto_websites['GRAM']}\">Gram</a>: {format_balance(b['GRAM'])} GRAM\n"
+        f"<tg-emoji emoji-id=\"5407016676342401484\">☺️</tg-emoji> <a href=\"{crypto_websites['SOL']}\">Solana</a>: {format_balance(b['SOL'])} SOL\n"
+        f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> <a href=\"{crypto_websites['TRX']}\">TRON</a>: {format_balance(b['TRX'])} TRX\n"
+        f"<tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> <a href=\"{crypto_websites['BTC']}\">Bitcoin</a>: {format_balance(b['BTC'])} BTC\n"
+        f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> <a href=\"{crypto_websites['ETH']}\">Ethereum</a>: {format_balance(b['ETH'])} ETH\n"
+        f"<tg-emoji emoji-id=\"5406581441536495663\">🐶</tg-emoji> <a href=\"{crypto_websites['DOGE']}\">Dogecoin</a>: {format_balance(b['DOGE'])} DOGE\n"
+        f"<tg-emoji emoji-id=\"5407128573125366746\">☺️</tg-emoji> <a href=\"{crypto_websites['LTC']}\">Litecoin</a>: {format_balance(b['LTC'])} LTC\n"
+        f"<tg-emoji emoji-id=\"5406671889252781489\">☺️</tg-emoji> <a href=\"{crypto_websites['BNB']}\">Binance Coin</a>: {format_balance(b['BNB'])} BNB\n"
+        f"<tg-emoji emoji-id=\"5406575600380974539\">☺️</tg-emoji> <a href=\"{crypto_websites['USDC']}\">USD Coin</a>: {format_balance(b['USDC'])} USDC\n"
+        f"<tg-emoji emoji-id=\"5407080001340215945\">😊</tg-emoji> <a href=\"{crypto_websites['XAUT']}\">Tether Gold</a>: {format_balance(b['XAUT'])} XAUT\n\n"
         f"≈ {total_btc_formatted} BTC"
     )
     return text
