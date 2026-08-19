@@ -43,9 +43,9 @@ def get_wallet_text(user_id: int):
     )
     text = (
         f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
-        f"<tg-emoji emoji-id=\"5406841020769936275\">️</tg-emoji> Tether: {b['USDT']:.8f} USDT\n"
+        f"<tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> Tether: {b['USDT']:.8f} USDT\n"
         f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> Gram: {b['GRAM']:.8f} GRAM\n"
-        f"<tg-emoji emoji-id=\"5407016676342401484\">️</tg-emoji> Solana: {b['SOL']:.8f} SOL\n"
+        f"<tg-emoji emoji-id=\"5407016676342401484\">☺️</tg-emoji> Solana: {b['SOL']:.8f} SOL\n"
         f"<tg-emoji emoji-id=\"5406978786140918829\">☺️</tg-emoji> TRON: {b['TRX']:.8f} TRX\n"
         f"<tg-emoji emoji-id=\"5409133571233319295\">☺️</tg-emoji> Bitcoin: {b['BTC']:.8f} BTC\n"
         f"<tg-emoji emoji-id=\"5406930321729948822\">☺️</tg-emoji> Ethereum: {b['ETH']:.8f} ETH\n"
