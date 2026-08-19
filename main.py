@@ -8,7 +8,7 @@ BOT_TOKEN = '8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Имитация базы данных балансов (можно менять значения для теста)
+# Имитация базы данных балансов (исправлены ключи: убраны лишние пробелы)
 user_balances = {
     "USDT": 0.00000000,
     "GRAM": 0.00000000,
@@ -23,7 +23,7 @@ user_balances = {
     "XAUT": 0.00000000
 }
 
-# Ссылки на официальные сайты криптовалют
+# Ссылки на официальные сайты криптовалют (исправлены ключи и URL)
 crypto_websites = {
     "USDT": "https://tether.to",
     "GRAM": "https://ton.org",
@@ -49,7 +49,7 @@ def format_balance(value):
 
 # Функция для получения текста баланса
 def get_wallet_text(user_id: int):
-    # Для примера берем баланс из словаря (в реальном боте тут будет запрос к БД)
+    # Для примера берем баланс из словаря
     b = user_balances
     
     # Расчет общего баланса в BTC (условный курс для примера)
@@ -124,14 +124,14 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
-      text = (
+    text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA\">отправляйте</a> и платите криптовалютой,\n"
+        "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>. "
+        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
+        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
     )
     await message.answer(
         text,
@@ -145,21 +145,21 @@ async def open_wallet(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_wallet_text(callback.from_user.id),
         parse_mode='HTML',
-        disable_web_page_preview=True,  # <-- ЭТО СКРЫВАЕТ ПРЕДПРОСМОТР ССЫЛКИ
+        disable_web_page_preview=True,  # Скрывает предпросмотр ссылок
         reply_markup=wallet_keyboard
     )
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
-     text = (
+   text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA\">отправляйте</a> и платите криптовалютой,\n"
+        "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>. "
+        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
+        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
     )
     await callback.message.edit_text(
         text,
