@@ -100,11 +100,11 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 async def send_welcome(message: types.Message):
     text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
+        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
         "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>."
     )
     
@@ -126,14 +126,14 @@ async def open_wallet(callback: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
-    text = (
+     text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
-        "<a href=\"https://t.me/CryptoBotRU/14\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "<a href=\"https://t.me/CryptoBotRU/228\">отправляйте</a> и платите криптовалютой,\n"
+        "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
-        "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/CryptoBotRussian\">наш чат</a>."
+        "Подписывайтесь на <a href=\"https://t.me/Crypto_Bot_RUSSIA\">наш канал</a> и вступайте в\n"
+        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>."
     )
     
     await callback.message.edit_text(
