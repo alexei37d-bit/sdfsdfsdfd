@@ -6,6 +6,7 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.exceptions import TelegramBadRequest
 from database import Database
 
 # --- КОНФИГУРАЦИЯ ---
@@ -14,7 +15,7 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 db = Database()
 
-# Ссылки на сайты (для генерации ссылок в чеках и кошельке)
+# Ссылки на сайты (без пробелов!)
 crypto_websites = {
     "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
     "TRX": "https://tron.network", "BTC": "https://bitcoin.org", "ETH": "https://ethereum.org",
@@ -22,7 +23,7 @@ crypto_websites = {
     "USDC": "https://www.centre.io/usdc", "XAUT": "https://tether.to/en/tether-gold/"
 }
 
-# Курсы к USD для отображения (примерные)
+# Курсы к USD для отображения (без пробелов!)
 USD_RATES = {
     "USDT": 1.0, "USDC": 1.0, "BTC": 65000, "ETH": 3500, "SOL": 150,
     "GRAM": 0.007, "TRX": 0.12, "DOGE": 0.15, "LTC": 70, "BNB": 600, "XAUT": 2300
@@ -49,7 +50,7 @@ async def generate_check_image(currency: str, amount: float):
     )
     return url
 
-# --- ТЕКСТЫ И КЛАВИАТУРЫ (ИЗ MAIN 9 С ПРЕМИУМ ЭМОДЗИ) ---
+# --- ТЕКСТЫ И КЛАВИАТУРЫ ---
 
 def get_wallet_text(user_id: int):
     b = db.get_all_balances(user_id)
@@ -79,7 +80,7 @@ def get_wallet_text(user_id: int):
     )
     return text
 
-# Главное меню с Premium эмодзи (из main 9)
+# Главное меню с Premium эмодзи
 main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Кошелёк", callback_data="wallet", icon_custom_emoji_id="5310191758255099001"),
@@ -138,7 +139,11 @@ async def send_welcome(message: types.Message):
 
 @dp.callback_query(lambda c: c.data == "wallet")
 async def open_wallet(callback: types.CallbackQuery):
-    await callback.message.edit_text(get_wallet_text(callback.from_user.id), parse_mode='HTML', disable_web_page_preview=True, reply_markup=wallet_keyboard)
+    try:
+        await callback.message.edit_text(get_wallet_text(callback.from_user.id), parse_mode='HTML', disable_web_page_preview=True, reply_markup=wallet_keyboard)
+    except TelegramBadRequest as e:
+        if "message is not modified" not in str(e):
+            raise e
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
@@ -152,7 +157,11 @@ async def back_to_main(callback: types.CallbackQuery):
         "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
         "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
-    await callback.message.edit_text(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
+    try:
+        await callback.message.edit_text(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
+    except TelegramBadRequest as e:
+        if "message is not modified" not in str(e):
+            raise e
     await callback.answer()
 
 # ================= СИСТЕМА ЧЕКОВ =================
