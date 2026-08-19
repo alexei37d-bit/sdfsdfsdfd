@@ -2,28 +2,17 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from database import Database  # Импортируем наш класс БД
 
 # Токен бота
 BOT_TOKEN = '8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Имитация базы данных балансов (исправлены ключи: убраны лишние пробелы)
-user_balances = {
-    "USDT": 0.00000000,
-    "GRAM": 0.00000000,
-    "SOL": 0.00000000,
-    "TRX": 0.00000000,
-    "BTC": 0.00000000,
-    "ETH": 0.00000000,
-    "DOGE": 0.00000000,
-    "LTC": 0.00000000,
-    "BNB": 0.00000000,
-    "USDC": 0.00000000,
-    "XAUT": 0.00000000
-}
+# Инициализация базы данных
+db = Database()
 
-# Ссылки на официальные сайты криптовалют (исправлены ключи и URL)
+# Ссылки на официальные сайты криптовалют
 crypto_websites = {
     "USDT": "https://tether.to",
     "GRAM": "https://ton.org",
@@ -40,19 +29,21 @@ crypto_websites = {
 
 # Функция для форматирования баланса
 def format_balance(value):
-    """Форматирует баланс: если 0 - показывает '0', иначе показывает с точностью"""
     if value == 0:
         return "0"
-    # Убираем лишние нули в конце
     formatted = f"{value:.8f}".rstrip('0').rstrip('.')
     return formatted
 
-# Функция для получения текста баланса
+# Функция для получения текста баланса из БД
 def get_wallet_text(user_id: int):
-    # Для примера берем баланс из словаря
-    b = user_balances
+    # Получаем данные из базы
+    b = db.get_all_balances(user_id)
     
-    # Расчет общего баланса в BTC (условный курс для примера)
+    # Если пользователь новый, может вернуться пустой словарь, обработаем это
+    if not b:
+        b = {k: 0.0 for k in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]}
+
+    # Расчет общего баланса в BTC (условный курс)
     total_btc = (
         b["USDT"] * 0.00001 +
         b["GRAM"] * 0.0000001 +
@@ -67,10 +58,8 @@ def get_wallet_text(user_id: int):
         b["XAUT"] * 0.03
     )
     
-    # Форматируем общий баланс
     total_btc_formatted = format_balance(total_btc)
     
-    # Используем одинарные кавычки внутри f-строки для HTML атрибутов
     text = (
         f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
         f"<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji> <a href='{crypto_websites['USDT']}'>Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
@@ -125,6 +114,9 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
+    # Добавляем пользователя в БД при первом запуске
+    db.add_user(message.from_user.id)
+    
     text = (
         "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji> "
         "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
@@ -146,7 +138,7 @@ async def open_wallet(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_wallet_text(callback.from_user.id),
         parse_mode='HTML',
-        disable_web_page_preview=True,  # Скрывает предпросмотр ссылок
+        disable_web_page_preview=True,
         reply_markup=wallet_keyboard
     )
     await callback.answer()
@@ -170,14 +162,38 @@ async def back_to_main(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-# Заглушки для остальных кнопок
+# Пример команды для теста пополнения (только для вас)
+@dp.message(Command("add_money"))
+async def test_add_money(message: types.Message):
+    # Команда: /add_money USDT 100
+    args = message.text.split()
+    if len(args) != 3:
+        await message.answer("Использование: /add_money <валюта> <сумма>")
+        return
+    
+    currency = args[1].upper()
+    try:
+        amount = float(args[2])
+    except ValueError:
+        await message.answer("Сумма должна быть числом")
+        return
+        
+    if currency in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]:
+        db.update_balance(message.from_user.id, currency, amount)
+        await message.answer(f"Добавлено {amount} {currency} на ваш баланс!")
+    else:
+        await message.answer("Неизвестная валюта")
+
 @dp.callback_query(lambda c: c.data in ["exchange", "p2p", "market", "checks", "invoices", "cryptopay", "giveaways", "subscriptions", "settings", "deposit", "withdraw"])
 async def placeholder_callback(callback: types.CallbackQuery):
     await callback.answer(f"Раздел '{callback.data}' пока в разработке", show_alert=True)
 
 async def main():
     print("Бот запущен...")
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot)
+    finally:
+        db.close() # Закрываем БД при остановке
 
 if __name__ == '__main__':
     asyncio.run(main())
