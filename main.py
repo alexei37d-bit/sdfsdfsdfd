@@ -29,16 +29,16 @@ def get_wallet_text(user_id: int):
     b = user_balances
     # Расчет общего баланса в BTC (условный курс для примера)
     total_btc = (
-        b["USDT"] * 0.00001 + 
-        b["GRAM"] * 0.0000001 + 
-        b["SOL"] * 0.002 + 
-        b["TRX"] * 0.000002 + 
-        b["BTC"] + 
-        b["ETH"] * 0.03 + 
-        b["DOGE"] * 0.000001 + 
-        b["LTC"] * 0.001 + 
-        b["BNB"] * 0.005 + 
-        b["USDC"] * 0.00001 + 
+        b["USDT"] * 0.00001 +
+        b["GRAM"] * 0.0000001 +
+        b["SOL"] * 0.002 +
+        b["TRX"] * 0.000002 +
+        b["BTC"] +
+        b["ETH"] * 0.03 +
+        b["DOGE"] * 0.000001 +
+        b["LTC"] * 0.001 +
+        b["BNB"] * 0.005 +
+        b["USDC"] * 0.00001 +
         b["XAUT"] * 0.03
     )
     text = (
