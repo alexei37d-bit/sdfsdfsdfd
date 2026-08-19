@@ -92,7 +92,6 @@ class Database:
         row = self.cursor.fetchone()
         if not row:
             return None
-        # Преобразуем кортеж в словарь для удобства
         keys = ['id', 'creator_id', 'currency', 'amount', 'is_active', 'activated_by', 'created_at']
         return dict(zip(keys, row))
 
@@ -115,9 +114,7 @@ class Database:
         self.conn.commit()
 
     def delete_check(self, check_id: str, user_id: int):
-        """Удаляет чек из базы данных (только если он принадлежит пользователю)"""
-        # Сначала проверим, принадлежит ли чек пользователю, чтобы вернуть средства корректно в main.py
-        # Но здесь мы просто удаляем запись
+        """Удаляет чек из базы данных"""
         self.cursor.execute("DELETE FROM checks WHERE id = ? AND creator_id = ?", (check_id, user_id))
         self.conn.commit()
 
