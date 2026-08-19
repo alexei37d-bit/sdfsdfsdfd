@@ -70,7 +70,7 @@ def get_wallet_text(user_id: int):
     # Форматируем общий баланс
     total_btc_formatted = format_balance(total_btc)
     
-    text = (
+ text = (
         f"<b><tg-emoji emoji-id=\"5310191758255099001\">👛</tg-emoji> Кошелек</b>\n\n"
         f"<tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> <a href=\"{crypto_websites['USDT']}\">Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
         f"<tg-emoji emoji-id=\"5318901904686754959\">🙂</tg-emoji> <a href=\"{crypto_websites['GRAM']}\">Gram</a>: {format_balance(b['GRAM'])} GRAM\n\n"
@@ -124,14 +124,14 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
-    text = (
+      text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
-        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/1\">Мультивалютный криптокошелек</a>\n\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "отправляйте и платите криптовалютой,\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA\">отправляйте</a> и платите криптовалютой,\n"
         "когда хотите.\n\n"
         "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
-        "<a href=\"https://t.me/Crypto_Bot_Russian_Chat\">наш чат</a>. "
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA_Chat\">наш чат</a>. "
     )
     await message.answer(
         text,
@@ -145,13 +145,14 @@ async def open_wallet(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_wallet_text(callback.from_user.id),
         parse_mode='HTML',
+        disable_web_page_preview=True,  # <-- ЭТО СКРЫВАЕТ ПРЕДПРОСМОТР ССЫЛКИ
         reply_markup=wallet_keyboard
     )
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
-    text = (
+     text = (
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji>   "
         "<a href=\"https://t.me/Crypto_Bot_RUSSIA/6\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
