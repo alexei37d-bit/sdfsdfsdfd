@@ -15,7 +15,7 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 db = Database()
 
-# Ссылки на сайты (без пробелов!)
+# ИСПРАВЛЕНО: Убраны пробелы в ключах!
 crypto_websites = {
     "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
     "TRX": "https://tron.network", "BTC": "https://bitcoin.org", "ETH": "https://ethereum.org",
@@ -23,7 +23,6 @@ crypto_websites = {
     "USDC": "https://www.centre.io/usdc", "XAUT": "https://tether.to/en/tether-gold/"
 }
 
-# Курсы к USD для отображения (без пробелов!)
 USD_RATES = {
     "USDT": 1.0, "USDC": 1.0, "BTC": 65000, "ETH": 3500, "SOL": 150,
     "GRAM": 0.007, "TRX": 0.12, "DOGE": 0.15, "LTC": 70, "BNB": 600, "XAUT": 2300
@@ -51,7 +50,6 @@ async def generate_check_image(currency: str, amount: float):
     return url
 
 # --- ТЕКСТЫ И КЛАВИАТУРЫ ---
-
 def get_wallet_text(user_id: int):
     b = db.get_all_balances(user_id)
     if not b: 
@@ -80,7 +78,6 @@ def get_wallet_text(user_id: int):
     )
     return text
 
-# Главное меню с Premium эмодзи
 main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Кошелёк", callback_data="wallet", icon_custom_emoji_id="5310191758255099001"),
@@ -119,7 +116,6 @@ class CheckCreation(StatesGroup):
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     db.add_user(message.from_user.id)
-    # Проверяем, не является ли это активацией чека
     args = message.text.split()
     if len(args) > 1 and args[1].startswith("check_"):
         check_id = args[1].replace("check_", "")
@@ -166,7 +162,6 @@ async def back_to_main(callback: types.CallbackQuery):
 
 # ================= СИСТЕМА ЧЕКОВ =================
 
-# 1. Меню чеков
 @dp.callback_query(lambda c: c.data == "checks")
 async def checks_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -186,7 +181,6 @@ async def checks_menu(callback: types.CallbackQuery):
     await callback.message.edit_text(text, parse_mode='HTML', reply_markup=kb)
     await callback.answer()
 
-# 2. Начало создания чека
 @dp.callback_query(lambda c: c.data == "create_check_start")
 async def create_check_start(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -220,7 +214,6 @@ async def create_check_start(callback: types.CallbackQuery):
         await callback.message.edit_text(text, reply_markup=kb)
     await callback.answer()
 
-# 3. Выбор валюты (FSM)
 @dp.callback_query(lambda c: c.data.startswith("select_check_curr_"))
 async def select_check_currency_fsm(callback: types.CallbackQuery, state: FSMContext):
     currency = callback.data.split("_")[-1]
@@ -232,7 +225,6 @@ async def select_check_currency_fsm(callback: types.CallbackQuery, state: FSMCon
     await callback.message.edit_text(text, reply_markup=kb)
     await callback.answer()
 
-# 4. Обработка суммы
 @dp.message(CheckCreation.waiting_for_amount)
 async def process_check_amount(message: types.Message, state: FSMContext):
     data = await state.get_data()
@@ -257,7 +249,6 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         await state.clear()
         return
         
-    # Списание и создание
     db.update_balance(message.from_user.id, currency, -amount)
     check_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     db.create_check(check_id, message.from_user.id, currency, amount)
@@ -285,7 +276,6 @@ async def process_check_amount(message: types.Message, state: FSMContext):
     await message.answer_photo(photo=img_url, caption=caption, parse_mode='HTML', reply_markup=kb)
     await state.clear()
 
-# 5. Список активных чеков
 @dp.callback_query(lambda c: c.data == "my_active_checks")
 async def my_active_checks(callback: types.CallbackQuery):
     checks = db.get_user_checks(callback.from_user.id)
@@ -304,7 +294,6 @@ async def my_active_checks(callback: types.CallbackQuery):
     await callback.message.edit_text("Ваши активные чеки:", reply_markup=kb)
     await callback.answer()
 
-# 6. Управление чеком
 @dp.callback_query(lambda c: c.data.startswith("manage_check_"))
 async def manage_check(callback: types.CallbackQuery):
     check_id = callback.data.split("_")[-1]
@@ -335,22 +324,18 @@ async def manage_check(callback: types.CallbackQuery):
         await callback.message.edit_text(caption, parse_mode='HTML', reply_markup=kb)
     await callback.answer()
 
-# 7. Удаление чека
 @dp.callback_query(lambda c: c.data.startswith("delete_check_"))
 async def delete_check(callback: types.CallbackQuery):
     check_id = callback.data.split("_")[-1]
-    # Получаем данные перед удалением для возврата средств
     check = db.get_check(check_id)
     if check and check['creator_id'] == callback.from_user.id:
         db.delete_check(check_id, callback.from_user.id)
-        # Возврат средств
         db.update_balance(callback.from_user.id, check['currency'], check['amount'])
         await callback.message.delete()
         await callback.answer("Чек удален. Средства возвращены.", show_alert=True)
     else:
         await callback.answer("Ошибка или чек уже удален", show_alert=True)
 
-# 8. АКТИВАЦИЯ ЧЕКА
 async def activate_check_logic(message: types.Message, check_id: str):
     check = db.get_check(check_id)
     if not check or not check['is_active']:
@@ -372,7 +357,6 @@ async def activate_check_logic(message: types.Message, check_id: str):
         parse_mode='HTML'
     )
     
-    # Уведомление создателю
     creator_id = check['creator_id']
     notify_text = (
         f"<tg-emoji emoji-id='5311998535032409760'>🎁</tg-emoji> "
@@ -384,14 +368,12 @@ async def activate_check_logic(message: types.Message, check_id: str):
     except:
         pass
 
-# Инлайн режим (Объединенная логика: Создание если число, Активация если ID)
 @dp.inline_query(lambda q: True)
 async def inline_handler(query: types.InlineQuery):
     text = query.query.strip()
     user_id = query.from_user.id
     results = []
     
-    # Попытка интерпретировать как создание чека (число)
     try:
         amount = float(text)
         if amount > 0:
@@ -413,7 +395,6 @@ async def inline_handler(query: types.InlineQuery):
     except ValueError:
         pass
         
-    # Если не число, проверяем на активацию чека
     if text:
         check = db.get_check(text)
         if check and check['is_active']:
@@ -428,16 +409,12 @@ async def inline_handler(query: types.InlineQuery):
             await query.answer(results, cache_time=0)
             return
             
-    # Если ничего не найдено
     await query.answer([], cache_time=0)
 
 @dp.callback_query(lambda c: c.data.startswith("inline_create_"))
 async def process_inline_create(callback: types.CallbackQuery):
-    # Формат: inline_CREATE_CURRENCY_AMOUNT
     data_part = callback.data.replace("inline_create_", "")
     parts = data_part.split("_")
-    
-    # Валюта всегда первая, остальное - сумма (может содержать точки)
     currency = parts[0]
     amount_str = "_".join(parts[1:])
     
@@ -512,7 +489,6 @@ async def activate_inline_callback(callback: types.CallbackQuery):
         pass
     await callback.answer("Чек активирован!")
 
-# Заглушки для остальных разделов
 @dp.callback_query(lambda c: c.data in ["exchange", "p2p", "market", "invoices", "cryptopay", "giveaways", "subscriptions", "settings", "deposit", "withdraw", "convert_gift"])
 async def placeholder(callback: types.CallbackQuery):
     await callback.answer(f"Раздел '{callback.data}' пока в разработке", show_alert=True)
