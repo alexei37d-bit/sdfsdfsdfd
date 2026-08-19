@@ -127,7 +127,7 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 async def send_welcome(message: types.Message):
     text = (
         "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji>    "
-        "<a href='https://t.me/Crypto_Bot_RUSSIA/1'>Мультивалютный криптокошелек</a>\n\n"
+        "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
@@ -155,7 +155,7 @@ async def open_wallet(callback: types.CallbackQuery):
 async def back_to_main(callback: types.CallbackQuery):
     text = (
         "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji>    "
-        "<a href='https://t.me/Crypto_Bot_RUSSIA/1'>Мультивалютный криптокошелек</a>\n\n"
+        "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
         "когда хотите.\n\n"
