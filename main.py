@@ -16,7 +16,7 @@ async def send_welcome(message: types.Message):
         "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
         "<a href=\"https://t.me/CryptoBotRU/14\">Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
-        "<a href=\"https://t.me/CryptoBotRU/228\">отправляйте</a> и платите криптовалютой,\n"
+        "<a href=\"https://t.me/Crypto_Bot_RUSSIA/228\">отправляйте</a> и платите криптовалютой,\n"
         "когда хотите.\n\n"
         "Подписывайтесь на <a href=\"https://t.me/CryptoBotRU\">наш канал</a> и вступайте в\n"
         "<a href=\"https://t.me/CryptoBotRussian\">наш чат</a>."
@@ -52,12 +52,7 @@ async def send_welcome(message: types.Message):
         disable_web_page_preview=True,
         reply_markup=keyboard
     )
-
-# Обработчик нажатий на кнопки (пока просто заглушка)
-@dp.callback_query(lambda c: True)
-async def handle_callback(callback: types.CallbackQuery):
-    await callback.answer(f"Вы нажали: {callback.data}")
-
+    
 async def main():
     print("Бот запущен...")
     await dp.start_polling(bot)
