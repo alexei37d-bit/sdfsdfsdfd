@@ -18,7 +18,8 @@ db = Database()
 # ID администратора
 ADMIN_IDS = [7921743592]
 
-# ВАЖНО: Вставьте сюда вашу ссылку GitHub Pages!
+# ВАЖНО: Замените на вашу реальную ссылку GitHub Pages!
+# Пример: https://alexei37d-bit.github.io/sdfsdfsdfd/
 WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
@@ -73,10 +74,9 @@ def get_sorted_currencies(user_id):
         return sorted(CURRENCY_ORDER, key=lambda x: (-balances.get(x, 0), CURRENCY_ORDER.index(x)))
 
 def create_webapp_link(user_id):
-    """Создает ссылку на Web App с зашифрованным балансом"""
+    """Создает ссылку на Web App с данными баланса"""
     b = db.get_all_balances(user_id)
     
-    # Считаем общий баланс в BTC
     total_btc = sum([
         b.get("USDT", 0)*0.00001, b.get("GRAM", 0)*0.0000001, b.get("SOL", 0)*0.002, 
         b.get("TRX", 0)*0.000002, b.get("BTC", 0), b.get("ETH", 0)*0.03, 
@@ -84,7 +84,6 @@ def create_webapp_link(user_id):
         b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     
-    # Форматируем балансы
     formatted_balances = {k: format_balance(v) for k, v in b.items() if v > 0}
     
     data_obj = {
@@ -92,7 +91,6 @@ def create_webapp_link(user_id):
         "total_btc": format_balance(total_btc)
     }
     
-    # Кодируем данные для передачи в URL
     json_str = json.dumps(data_obj)
     encoded_data = urllib.parse.quote(json_str)
     
@@ -110,7 +108,9 @@ def get_wallet_text(user_id: int):
         b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     sorted_currencies = get_sorted_currencies(user_id)
-    text = f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
+    # Добавляем SVG иконку в начало текста
+    svg_icon = '<tg-emoji emoji-id="5310191758255099001">👛</tg-emoji>'
+    text = f"<b>{svg_icon} Кошелек</b>\n\n"
     for currency in sorted_currencies:
         emoji_id = CRYPTO_EMOJIS[currency]
         balance = b.get(currency, 0)
