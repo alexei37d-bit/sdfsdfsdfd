@@ -260,30 +260,30 @@ async def show_currency_selection(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     state = user_states[user_id]
     text = (
-         "Выберите одну или больше криптовалют,\n"
-         "которыми может быть оплачен счет."
-     )
-     keyboard_rows = []
-     for i in range(0, len(CURRENCY_ORDER), 3):
-         row = []
-         for j in range(i, min(i+3, len(CURRENCY_ORDER))):
-             currency = CURRENCY_ORDER[j]
-             selected = currency in state['selected_currencies']
-             dot = " ·" if (selected or (not state['selected_currencies'] and state.get('show_dots', False))) else ""
-             btn_text = f"{currency}{dot}"
-             row.append(InlineKeyboardButton(text=btn_text, callback_data=f"toggle_currency_{currency}"))
-         keyboard_rows.append(row)
-     nav_buttons = [
-         InlineKeyboardButton(text="Далее›", callback_data="invoice_next_after_currency"),
-         InlineKeyboardButton(text="‹ Изменить тип счета", callback_data="create_invoice")
-     ]
-     keyboard_rows.append(nav_buttons)
-     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
-     try:
-         await callback.message.edit_text(text, reply_markup=keyboard)
-     except TelegramBadRequest as e:
-         if "message is not modified" not in str(e):
-             raise e
+        "Выберите одну или больше криптовалют,\n"
+        "которыми может быть оплачен счет."
+    )
+    keyboard_rows = []
+    for i in range(0, len(CURRENCY_ORDER), 3):
+        row = []
+        for j in range(i, min(i+3, len(CURRENCY_ORDER))):
+            currency = CURRENCY_ORDER[j]
+            selected = currency in state['selected_currencies']
+            dot = " ·" if (selected or (not state['selected_currencies'] and state.get('show_dots', False))) else ""
+            btn_text = f"{currency}{dot}"
+            row.append(InlineKeyboardButton(text=btn_text, callback_data=f"toggle_currency_{currency}"))
+        keyboard_rows.append(row)
+    nav_buttons = [
+        InlineKeyboardButton(text="Далее›", callback_data="invoice_next_after_currency"),
+        InlineKeyboardButton(text="‹ Изменить тип счета", callback_data="create_invoice")
+    ]
+    keyboard_rows.append(nav_buttons)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
+    try:
+        await callback.message.edit_text(text, reply_markup=keyboard)
+    except TelegramBadRequest as e:
+        if "message is not modified" not in str(e):
+            raise e
 
 @dp.callback_query(lambda c: c.data.startswith("toggle_currency_"))
 async def toggle_currency(callback: types.CallbackQuery):
@@ -330,27 +330,27 @@ async def process_amount(message: types.Message):
     user_id = message.from_user.id
     state = user_states[user_id]
     try:
-         amount = float(message.text)
-         # ПРОВЕРКА НА МИНИМАЛЬНУЮ СУММУ 0.01
-         if amount < 0.01:
-             await message.answer("❌ Минимальная сумма счета составляет 0.01 USD. Попробуйте еще раз.")
-             return
+        amount = float(message.text)
+        # ПРОВЕРКА НА МИНИМАЛЬНУЮ СУММУ 0.01
+        if amount < 0.01:
+            await message.answer("❌ Минимальная сумма счета составляет 0.01 USD. Попробуйте еще раз.")
+            return
          
-         state['amount_usd'] = amount
-         state['step'] = 'invoice_created'
-         invoice_id = generate_invoice_id()
-         state['invoice_id'] = invoice_id
-         currencies_list = sorted(list(state['selected_currencies']))
-         db.create_invoice(
-             invoice_id=invoice_id,
-             creator_id=user_id,
-             amount_usd=amount,
-             currencies=currencies_list,
-             invoice_type=state['invoice_type']
-         )
-         await show_invoice_details(message, invoice_id)
-     except ValueError:
-         await message.answer("Пожалуйста, введите корректную сумму (число).")
+        state['amount_usd'] = amount
+        state['step'] = 'invoice_created'
+        invoice_id = generate_invoice_id()
+        state['invoice_id'] = invoice_id
+        currencies_list = sorted(list(state['selected_currencies']))
+        db.create_invoice(
+            invoice_id=invoice_id,
+            creator_id=user_id,
+            amount_usd=amount,
+            currencies=currencies_list,
+            invoice_type=state['invoice_type']
+        )
+        await show_invoice_details(message, invoice_id)
+    except ValueError:
+        await message.answer("Пожалуйста, введите корректную сумму (число).")
 
 async def show_invoice_details(message_or_callback, invoice_id):
     invoice = db.get_invoice(invoice_id)
@@ -386,8 +386,8 @@ async def show_invoice_permissions(callback: types.CallbackQuery):
     invoice_id = callback.data.replace("invoice_permissions_", "")
     invoice = db.get_invoice(invoice_id)
     if not invoice:
-         await callback.answer("Счет не найден.", show_alert=True)
-         return
+        await callback.answer("Счет не найден.", show_alert=True)
+        return
     comments_status = "Вкл." if invoice['allow_comments'] else "Выкл."
     anonymous_status = "Вкл." if invoice['allow_anonymous'] else "Выкл."
     text = (
@@ -480,28 +480,28 @@ async def view_all_invoices(callback: types.CallbackQuery):
 async def inline_query_handler(query: types.InlineQuery):
     query_text = query.query.strip()
     if not query_text.startswith("IV"):
-         return
+        return
     invoice = db.get_invoice(query_text)
     if not invoice or not invoice['is_active']:
-         return
+        return
     if invoice['invoice_type'] == 'single' and invoice['is_paid']:
-         return
+        return
     bot_username = (await bot.get_me()).username
     if invoice['invoice_type'] == 'multi':
-         title_text = f"Многоразовый счет на ${invoice['amount_usd']}"
+        title_text = f"Многоразовый счет на ${invoice['amount_usd']}"
     else:
-         title_text = f"Счет на ${invoice['amount_usd']}"
+        title_text = f"Счет на ${invoice['amount_usd']}"
     result = types.InlineQueryResultArticle(
-         id=query_text,
-         title="Поделиться счетом",
-         description="Нажмите, чтобы поделиться этим счетом.",
-         input_message_content=types.InputTextMessageContent(
-             message_text=f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> {title_text}",
-             parse_mode="HTML"
-         ),
-         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-             [InlineKeyboardButton(text="Оплатить", url=f"https://t.me/{bot_username}?start={query_text}")]
-         ])
+        id=query_text,
+        title="Поделиться счетом",
+        description="Нажмите, чтобы поделиться этим счетом.",
+        input_message_content=types.InputTextMessageContent(
+            message_text=f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> {title_text}",
+            parse_mode="HTML"
+        ),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Оплатить", url=f"https://t.me/{bot_username}?start={query_text}")]
+        ])
     )
     await query.answer(results=[result], cache_time=0)
 
@@ -509,18 +509,18 @@ async def inline_query_handler(query: types.InlineQuery):
 async def handle_invoice_payment_start(message, invoice_id):
     invoice = db.get_invoice(invoice_id)
     if not invoice or not invoice['is_active']:
-         await message.answer("Счет не найден.")
-         return
+        await message.answer("Счет не найден.")
+        return
     if invoice['invoice_type'] == 'single' and invoice['is_paid']:
-         await message.answer("Счет уже оплачен.")
-         return
+        await message.answer("Счет уже оплачен.")
+        return
     text = f"Выберите монету для оплаты счета #{invoice_id} на сумму ${invoice['amount_usd']}."
     keyboard_rows = []
     for currency in invoice['currencies']:
-         rate = USD_RATES.get(currency, 1)
-         amount_in_currency = invoice['amount_usd'] / rate
-         btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
-         keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
+        rate = USD_RATES.get(currency, 1)
+        amount_in_currency = invoice['amount_usd'] / rate
+        btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
+        keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
     keyboard_rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
     await message.answer(text, reply_markup=keyboard)
@@ -532,35 +532,35 @@ async def select_payment_currency(callback: types.CallbackQuery):
     currency = parts[3]
     invoice = db.get_invoice(invoice_id)
     if not invoice:
-         await callback.answer("Счет не найден.", show_alert=True)
-         return
+        await callback.answer("Счет не найден.", show_alert=True)
+        return
     rate = USD_RATES.get(currency, 1)
     amount_in_currency = invoice['amount_usd'] / rate
     user_id = callback.from_user.id
     user_states[user_id] = {
-         'step': 'confirm_payment',
-         'invoice_id': invoice_id,
-         'currency': currency,
-         'amount_in_currency': amount_in_currency,
-         'comment': '',
-         'is_anonymous': 0
+        'step': 'confirm_payment',
+        'invoice_id': invoice_id,
+        'currency': currency,
+        'amount_in_currency': amount_in_currency,
+        'comment': '',
+        'is_anonymous': 0
     }
     text = (
-         f"<tg-emoji emoji-id=\"5312043357311111246\"></tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
-         f"<b>Отправляете:</b> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>\n\n"
-         f"Вы уверены, что хотите оплатить этот счет?"
+        f"<tg-emoji emoji-id=\"5312043357311111246\"></tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
+        f"<b>Отправляете:</b> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>\n\n"
+        f"Вы уверены, что хотите оплатить этот счет?"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-         [InlineKeyboardButton(text=f"💳 Оплатить {format_balance(amount_in_currency)} {currency}", callback_data=f"process_payment_{invoice_id}_{currency}")],
-         [InlineKeyboardButton(text=f"Оплатить анонимно:{'Да' if invoice['allow_anonymous'] else 'Нет'}", callback_data=f"toggle_pay_anonymous_{invoice_id}")],
-         [InlineKeyboardButton(text="Добавить коментарий", callback_data=f"add_comment_{invoice_id}")],
-         [InlineKeyboardButton(text="‹ Назад к оплате", callback_data=f"back_to_payment_select_{invoice_id}")]
+        [InlineKeyboardButton(text=f"💳 Оплатить {format_balance(amount_in_currency)} {currency}", callback_data=f"process_payment_{invoice_id}_{currency}")],
+        [InlineKeyboardButton(text=f"Оплатить анонимно:{'Да' if invoice['allow_anonymous'] else 'Нет'}", callback_data=f"toggle_pay_anonymous_{invoice_id}")],
+        [InlineKeyboardButton(text="Добавить коментарий", callback_data=f"add_comment_{invoice_id}")],
+        [InlineKeyboardButton(text="‹ Назад к оплате", callback_data=f"back_to_payment_select_{invoice_id}")]
     ])
     try:
-         await callback.message.edit_text(text, parse_mode='HTML', reply_markup=keyboard)
+        await callback.message.edit_text(text, parse_mode='HTML', reply_markup=keyboard)
     except TelegramBadRequest as e:
-         if "message is not modified" not in str(e):
-             raise e
+        if "message is not modified" not in str(e):
+            raise e
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data.startswith("toggle_pay_anonymous_"))
@@ -624,22 +624,22 @@ async def back_to_payment_select(callback: types.CallbackQuery):
     invoice_id = callback.data.replace("back_to_payment_select_", "")
     invoice = db.get_invoice(invoice_id)
     if not invoice:
-         await callback.answer("Счет не найден.", show_alert=True)
-         return
+        await callback.answer("Счет не найден.", show_alert=True)
+        return
     text = f"Выберите монету для оплаты счета #{invoice_id} на сумму ${invoice['amount_usd']}."
     keyboard_rows = []
     for currency in invoice['currencies']:
-         rate = USD_RATES.get(currency, 1)
-         amount_in_currency = invoice['amount_usd'] / rate
-         btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
-         keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
+        rate = USD_RATES.get(currency, 1)
+        amount_in_currency = invoice['amount_usd'] / rate
+        btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
+        keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
     keyboard_rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
     try:
-         await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.message.edit_text(text, reply_markup=keyboard)
     except TelegramBadRequest as e:
-         if "message is not modified" not in str(e):
-             raise e
+        if "message is not modified" not in str(e):
+            raise e
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data.startswith("process_payment_"))
@@ -650,27 +650,27 @@ async def process_payment(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     invoice = db.get_invoice(invoice_id)
     if not invoice:
-         await callback.answer("Счет не найден.", show_alert=True)
-         return
+        await callback.answer("Счет не найден.", show_alert=True)
+        return
     if invoice['invoice_type'] == 'single' and invoice['is_paid']:
-         await callback.answer("Счет уже оплачен.", show_alert=True)
-         return
+        await callback.answer("Счет уже оплачен.", show_alert=True)
+        return
     state = user_states.get(user_id, {})
     rate = USD_RATES.get(currency, 1)
     amount_in_currency = invoice['amount_usd'] / rate
     
     payer_balance = db.get_balance(user_id, currency)
     if payer_balance < amount_in_currency:
-         text = "❌ Недостаточно средств."
-         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-             [InlineKeyboardButton(text="‹ Назад", callback_data=f"back_to_payment_select_{invoice_id}")]
-         ])
-         try:
-             await callback.message.edit_text(text, reply_markup=keyboard)
-         except TelegramBadRequest:
-             pass
-         await callback.answer()
-         return
+        text = "❌ Недостаточно средств."
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="‹ Назад", callback_data=f"back_to_payment_select_{invoice_id}")]
+        ])
+        try:
+            await callback.message.edit_text(text, reply_markup=keyboard)
+        except TelegramBadRequest:
+            pass
+        await callback.answer()
+        return
 
     is_anonymous = state.get('is_anonymous', 0)
     comment = state.get('comment', '')
@@ -679,50 +679,50 @@ async def process_payment(callback: types.CallbackQuery):
     db.add_to_balance(invoice['creator_id'], currency, amount_in_currency)
     
     if invoice['invoice_type'] == 'single':
-         db.mark_invoice_paid(invoice_id)
+        db.mark_invoice_paid(invoice_id)
          
     db.add_payment(invoice_id, user_id, currency, amount_in_currency, invoice['amount_usd'], comment, is_anonymous)
     
     try:
-         await callback.message.delete()
+        await callback.message.delete()
     except:
-         pass
+        pass
          
     await callback.answer()
     ok_msg = await bot.send_message(user_id, "👌")
     await asyncio.sleep(2)
     
     payer_text = (
-         f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счёт #{invoice_id} "
-         f"на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
+        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счёт #{invoice_id} "
+        f"на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
     )
     if comment:
-         payer_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
+        payer_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
     try:
-         await bot.send_message(user_id, payer_text, parse_mode='HTML')
+        await bot.send_message(user_id, payer_text, parse_mode='HTML')
     except:
-         pass
+        pass
 
     if is_anonymous:
-         payer_name = "Аноним"
+        payer_name = "Аноним"
     else:
-         try:
-             user = await bot.get_chat(user_id)
-             payer_name = user.full_name or user.username or "Пользователь"
-         except:
-             payer_name = "Пользователь"
+        try:
+            user = await bot.get_chat(user_id)
+            payer_name = user.full_name or user.username or "Пользователь"
+        except:
+            payer_name = "Пользователь"
              
     emoji_id = CRYPTO_EMOJIS.get(currency, "5310191758255099001")
     creator_text = (
-         f"<b>{payer_name}</b> оплатил(а) ваш счет #{invoice_id}. "
-         f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
+        f"<b>{payer_name}</b> оплатил(а) ваш счет #{invoice_id}. "
+        f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
     )
     if comment:
-         creator_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
+        creator_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
     try:
-         await bot.send_message(invoice['creator_id'], creator_text, parse_mode='HTML')
+        await bot.send_message(invoice['creator_id'], creator_text, parse_mode='HTML')
     except:
-         pass
+        pass
 
 # --- ЗАГЛУШКИ ДЛЯ ОСТАЛЬНЫХ КНОПОК ---
 @dp.callback_query(lambda c: c.data in [
