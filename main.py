@@ -21,7 +21,7 @@ ADMIN_IDS = [7921743592]
 # Глобальная переменная для username бота
 BOT_USERNAME = ""
 
-# Ссылки на сайты криптовалют
+# ИСПРАВЛЕНО: Убраны ВСЕ лишние пробелы в ключах!
 crypto_websites = {
     "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
     "TRX": "https://tron.network", "BTC": "https://bitcoin.org", "ETH": "https://ethereum.org",
@@ -34,16 +34,16 @@ USD_RATES = {
     "GRAM": 0.007, "TRX": 0.12, "DOGE": 0.15, "LTC": 70, "BNB": 600, "XAUT": 2300
 }
 
-# Эмодзи для чеков (как на скриншотах)
+# Эмодзи для чеков
 CURRENCY_EMOJIS = {
-    "USDT": "<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji>", # Используем ваш эмодзи или стандартный
+    "USDT": "<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji>",
     "GRAM": "<tg-emoji emoji-id='5318901904686754959'>🙂</tg-emoji>",
     "SOL": "<tg-emoji emoji-id='5407016676342401484'>☺️</tg-emoji>",
     "TRX": "<tg-emoji emoji-id='5406978786140918829'>☺️</tg-emoji>",
     "BTC": "<tg-emoji emoji-id='5409133571233319295'>☺️</tg-emoji>",
     "ETH": "<tg-emoji emoji-id='5406930321729948822'>☺️</tg-emoji>",
     "DOGE": "<tg-emoji emoji-id='5406581441536495663'>🐶</tg-emoji>",
-    "LTC": "<tg-emoji emoji-id='5407128573125366746'>️</tg-emoji>",
+    "LTC": "<tg-emoji emoji-id='5407128573125366746'>☺️</tg-emoji>",
     "BNB": "<tg-emoji emoji-id='5406671889252781489'>☺️</tg-emoji>",
     "USDC": "<tg-emoji emoji-id='5406575600380974539'>☺️</tg-emoji>",
     "XAUT": "<tg-emoji emoji-id='5407080001340215945'>😊</tg-emoji>"
@@ -83,8 +83,8 @@ def get_wallet_text(user_id: int):
     ])
     
     text = (
-        f"<b><tg-emoji emoji-id='5310191758255099001'></tg-emoji> Кошелек</b>\n\n"
-        f"<tg-emoji emoji-id='5406841020769936275'>️</tg-emoji> <a href='{crypto_websites['USDT']}'>Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
+        f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
+        f"<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji> <a href='{crypto_websites['USDT']}'>Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
         f"<tg-emoji emoji-id='5318901904686754959'>🙂</tg-emoji> <a href='{crypto_websites['GRAM']}'>Gram</a>: {format_balance(b['GRAM'])} GRAM\n\n"
         f"<tg-emoji emoji-id='5407016676342401484'>☺️</tg-emoji> <a href='{crypto_websites['SOL']}'>Solana</a>: {format_balance(b['SOL'])} SOL\n\n"
         f"<tg-emoji emoji-id='5406978786140918829'>☺️</tg-emoji> <a href='{crypto_websites['TRX']}'>TRON</a>: {format_balance(b['TRX'])} TRX\n\n"
@@ -177,7 +177,7 @@ async def open_wallet(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
     text = (
-        "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji> "
+        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
         "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
@@ -255,7 +255,7 @@ async def select_check_currency_fsm(callback: types.CallbackQuery, state: FSMCon
     await state.set_state(CheckCreation.waiting_for_amount)
     await state.update_data(selected_currency=currency)
     
-    text = f"Пришлите сумму чека в {currency}.\nЕсли вы хотите создать мультичек, введите кратную вашему балансу сумму одной активации."
+    text = f"Пришлите сумму чека в {currency}.\nВведите сумму чека:"
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="‹ Назад", callback_data="checks")]])
     await callback.message.edit_text(text, reply_markup=kb)
     await callback.answer()
@@ -292,10 +292,9 @@ async def process_check_amount(message: types.Message, state: FSMContext):
     img_url = await generate_check_image(currency, amount)
     usd_val = get_usd_value(amount, currency)
     
-    # Получаем эмодзи валюты
     curr_emoji = CURRENCY_EMOJIS.get(currency, "")
     
-    # ОФОРМЛЕНИЕ КАК НА ФОТО 2
+    # ОФОРМЛЕНИЕ КАК НА ФОТО 2 (ссылка на фото, текст как у @send)
     caption = (
         f"<b>Чек</b>\n\n"
         f"<b>Сумма:</b> {curr_emoji} {amount} {currency} (${usd_val})\n\n"
@@ -313,7 +312,6 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         [InlineKeyboardButton(text="‹ Назад к списку чеков", callback_data="my_active_checks")]
     ])
     
-    # Отправляем как ссылку на фото (InputMediaPhoto с URL)
     await message.answer_photo(photo=img_url, caption=caption, parse_mode='HTML', reply_markup=kb)
     await state.clear()
 
@@ -349,7 +347,6 @@ async def manage_check(callback: types.CallbackQuery):
     
     curr_emoji = CURRENCY_EMOJIS.get(check['currency'], "")
     
-    # ОФОРМЛЕНИЕ КАК НА ФОТО 2 (для управления чеком)
     caption = (
         f"<b>Чек</b>\n\n"
         f"<b>Сумма:</b> {curr_emoji} {check['amount']} {check['currency']} (${usd_val})\n\n"
@@ -389,15 +386,14 @@ async def activate_check_logic(message: types.Message, check_id: str):
         return
         
     activator_id = message.from_user.id
-    # ИСПРАВЛЕНО: Убрана проверка на creator_id, теперь можно активировать свои чеки
+    # ИСПРАВЛЕНО: Можно активировать свои чеки
     
     db.update_balance(activator_id, check['currency'], check['amount'])
     db.activate_check(check_id, activator_id)
     
     usd_val = get_usd_value(check['amount'], check['currency'])
     
-    # ОФОРМЛЕНИЕ КАК НА ФОТО 1 (при получении)
-    # Используем answer_photo для имитации "via @bot" с большой картинкой
+    # ОФОРМЛЕНИЕ КАК НА ФОТО 1
     img_url = await generate_check_image(check['currency'], check['amount'])
     
     caption = (
@@ -460,7 +456,7 @@ async def inline_handler(query: types.InlineQuery):
                 title=f"Получить {check['amount']} {check['currency']}",
                 description=f"Сумма: ${usd_val}",
                 input_message_content=types.InputTextMessageContent(message_text=f"Активация чека на {check['amount']} {check['currency']}..."),
-                reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Активировать", callback_data=f"activate_{text}")]])
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Активировать", callback_data=f"activate_{text}")]])
             ))
             await query.answer(results, cache_time=0)
             return
@@ -530,27 +526,24 @@ async def activate_inline_callback(callback: types.CallbackQuery):
     
     usd_val = get_usd_value(check['amount'], check['currency'])
     
-    # ОФОРМЛЕНИЕ КАК НА ФОТО 1
-    img_url = await generate_check_image(check['currency'], check['amount'])
-    
     success_text = (
         f"<tg-emoji emoji-id='5312043357311111246'></tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> "
         f"(<b>${usd_val}</b>)"
     )
     
-    # Редактируем сообщение, добавляя фото и кнопку
     try:
+        img_url = await generate_check_image(check['currency'], check['amount'])
         await callback.message.edit_media(
             media=InputMediaPhoto(media=img_url, caption=success_text, parse_mode='HTML'),
             reply_markup=check_received_keyboard
         )
     except Exception:
-        # Если edit_media не сработает (например, сообщение текстовое), удаляем и отправляем новое
         try:
             await callback.message.delete()
         except:
             pass
+        img_url = await generate_check_image(check['currency'], check['amount'])
         await callback.message.answer_photo(
             photo=img_url,
             caption=success_text,
