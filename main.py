@@ -44,7 +44,7 @@ CRYPTO_EMOJIS = {
     "XAUT": "5407080001340215945"
 }
 
-# Хранилище состояний для многошаговых процессов
+# Хранилище состояний
 user_states = {}
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
@@ -60,18 +60,12 @@ def generate_invoice_id():
             return invoice_id
 
 def get_sorted_currencies(user_id):
-    """Сортирует валюты: сначала те, где есть баланс (по убыванию), затем остальные"""
     balances = db.get_all_balances(user_id)
-    
-    # Проверяем, все ли балансы равны 0
     all_zero = all(balances.get(curr, 0) == 0 for curr in CURRENCY_ORDER)
-    
     if all_zero:
         return CURRENCY_ORDER.copy()
     else:
-        sorted_currencies = sorted(CURRENCY_ORDER, 
-                                  key=lambda x: (-balances.get(x, 0), CURRENCY_ORDER.index(x)))
-        return sorted_currencies
+        return sorted(CURRENCY_ORDER, key=lambda x: (-balances.get(x, 0), CURRENCY_ORDER.index(x)))
 
 # --- ТЕКСТЫ И КЛАВИАТУРЫ ---
 def get_wallet_text(user_id: int):
@@ -79,10 +73,12 @@ def get_wallet_text(user_id: int):
     if not b:
         b = {k: 0.0 for k in CURRENCY_ORDER}
     
+    # Безопасный расчет общего баланса в BTC
     total_btc = sum([
-        b["USDT"]*0.00001, b["GRAM"]*0.0000001, b["SOL"]*0.002, b["TRX"]*0.000002,
-        b["BTC"], b["ETH"]*0.03, b["DOGE"]*0.000001, b["LTC"]*0.001,
-        b["BNB"]*0.005, b["USDC"]*0.00001, b["XAUT"]*0.03
+        b.get("USDT", 0)*0.00001, b.get("GRAM", 0)*0.0000001, b.get("SOL", 0)*0.002, 
+        b.get("TRX", 0)*0.000002, b.get("BTC", 0), b.get("ETH", 0)*0.03, 
+        b.get("DOGE", 0)*0.000001, b.get("LTC", 0)*0.001,
+        b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     
     sorted_currencies = get_sorted_currencies(user_id)
@@ -93,7 +89,6 @@ def get_wallet_text(user_id: int):
         emoji_id = CRYPTO_EMOJIS[currency]
         balance = b.get(currency, 0)
         website = crypto_websites[currency]
-        # Используем стандартные эмодзи для отображения, как в запросе
         text += f"<tg-emoji emoji-id='{emoji_id}'>☺️</tg-emoji> <a href='{website}'>{currency}</a>: {format_balance(balance)} {currency}\n\n"
     
     text += f"≈ {format_balance(total_btc)} BTC"
@@ -132,7 +127,6 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 async def send_welcome(message: types.Message):
     db.add_user(message.from_user.id)
     
-    # Проверка на переход по ссылке счета
     args = message.text.split()
     if len(args) > 1 and args[1].startswith("IV"):
         invoice_id = args[1]
@@ -194,7 +188,7 @@ async def open_invoices(callback: types.CallbackQuery):
         "<a href='https://t.me/Crypto_Bot_RUSSIA/7'>инструкцию ›</a>"
     )
     
-    user_invoices = db.get_user_invoices(user_id)
+    user_invoices = db.get_active_invoices_for_list(user_id)
     
     keyboard_rows = []
     keyboard_rows.append([InlineKeyboardButton(text="Создать счет", callback_data="create_invoice")])
@@ -259,20 +253,17 @@ async def show_currency_selection(callback: types.CallbackQuery):
         "которыми может быть оплачен счет."
     )
     
-    # Создаем сетку кнопок валют (3 в ряд)
     keyboard_rows = []
     for i in range(0, len(CURRENCY_ORDER), 3):
         row = []
         for j in range(i, min(i+3, len(CURRENCY_ORDER))):
             currency = CURRENCY_ORDER[j]
             selected = currency in state['selected_currencies']
-            # Показываем точку если выбрано, или если ничего не выбрано но включен режим показа точек
             dot = " ·" if (selected or (not state['selected_currencies'] and state.get('show_dots', False))) else ""
             btn_text = f"{currency}{dot}"
             row.append(InlineKeyboardButton(text=btn_text, callback_data=f"toggle_currency_{currency}"))
         keyboard_rows.append(row)
     
-    # Кнопки навигации
     nav_buttons = [
         InlineKeyboardButton(text="Далее›", callback_data="invoice_next_after_currency"),
         InlineKeyboardButton(text="‹ Изменить тип счета", callback_data="create_invoice")
@@ -308,7 +299,6 @@ async def after_currency_selection(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     state = user_states[user_id]
     
-    # Если ничего не выбрано, выбираем все
     if not state['selected_currencies']:
         state['selected_currencies'] = set(CURRENCY_ORDER)
     
@@ -350,7 +340,6 @@ async def process_amount(message: types.Message):
         state['amount_usd'] = amount
         state['step'] = 'invoice_created'
         
-        # Генерируем счет
         invoice_id = generate_invoice_id()
         state['invoice_id'] = invoice_id
         
@@ -489,6 +478,29 @@ async def view_invoice(callback: types.CallbackQuery):
     invoice_id = callback.data.replace("view_invoice_", "")
     await show_invoice_details(callback, invoice_id)
 
+@dp.callback_query(lambda c: c.data == "view_invoices")
+async def view_all_invoices(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    invoices_ids = db.get_active_invoices_for_list(user_id)
+    
+    if not invoices_ids:
+        await callback.answer("У вас нет активных счетов.", show_alert=True)
+        return
+    
+    keyboard_rows = []
+    for inv_id in invoices_ids:
+        keyboard_rows.append([InlineKeyboardButton(text=f"Счет {inv_id}", callback_data=f"view_invoice_{inv_id}")])
+    
+    keyboard_rows.append([InlineKeyboardButton(text="‹ Назад к счетам", callback_data="invoices")])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
+    
+    try:
+        await callback.message.edit_text("Ваши активные счета:", reply_markup=keyboard)
+    except TelegramBadRequest as e:
+        if "message is not modified" not in str(e):
+            raise e
+    await callback.answer()
+
 # --- SHARE INVOICE (INLINE QUERY) ---
 @dp.inline_query(lambda q: True)
 async def inline_query_handler(query: types.InlineQuery):
@@ -500,15 +512,23 @@ async def inline_query_handler(query: types.InlineQuery):
     invoice = db.get_invoice(query_text)
     if not invoice or not invoice['is_active']:
         return
+    if invoice['invoice_type'] == 'single' and invoice['is_paid']:
+        return
     
     bot_username = (await bot.get_me()).username
+    
+    # Разный текст для одноразового и многоразового
+    if invoice['invoice_type'] == 'multi':
+        title_text = f"Многоразовый счет на ${invoice['amount_usd']}"
+    else:
+        title_text = f"Счет на ${invoice['amount_usd']}"
     
     result = types.InlineQueryResultArticle(
         id=query_text,
         title="Поделиться счетом",
         description="Нажмите, чтобы поделиться этим счетом.",
         input_message_content=types.InputTextMessageContent(
-            message_text=f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Счет на ${invoice['amount_usd']}",
+            message_text=f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> {title_text}",
             parse_mode="HTML"
         ),
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -559,6 +579,22 @@ async def select_payment_currency(callback: types.CallbackQuery):
     amount_in_currency = invoice['amount_usd'] / rate
     
     user_id = callback.from_user.id
+    
+    # Проверка баланса ПЕРЕД показом подтверждения
+    payer_balance = db.get_balance(user_id, currency)
+    if payer_balance < amount_in_currency:
+        text = f"❌ Недостаточно средств для оплаты в {currency}.\n\nБаланс: {format_balance(payer_balance)} {currency}\nТребуется: {format_balance(amount_in_currency)} {currency}"
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="‹ Назад", callback_data=f"back_to_payment_select_{invoice_id}")]
+        ])
+        try:
+            await callback.message.edit_text(text, reply_markup=keyboard)
+        except TelegramBadRequest:
+            pass
+        await callback.answer()
+        return
+
+    # Если баланс есть, показываем подтверждение
     user_states[user_id] = {
         'step': 'confirm_payment',
         'invoice_id': invoice_id,
@@ -569,8 +605,8 @@ async def select_payment_currency(callback: types.CallbackQuery):
     }
     
     text = (
-        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Подтвердите оплату счета #{invoice_id}\n\n"
-        f"Отправляете: {format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})\n\n"
+        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
+        f"<b>Отправляете:</b> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>\n\n"
         f"Вы уверены, что хотите оплатить этот счет?"
     )
     
@@ -642,8 +678,8 @@ async def select_payment_currency_by_data(message, invoice_id, currency):
     amount_in_currency = invoice['amount_usd'] / rate
     
     text = (
-        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Подтвердите оплату счета #{invoice_id}\n\n"
-        f"Отправляете: {format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})\n\n"
+        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
+        f"<b>Отправляете:</b> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>\n\n"
         f"Вы уверены, что хотите оплатить этот счет?"
     )
     
@@ -706,7 +742,7 @@ async def process_payment(callback: types.CallbackQuery):
     rate = USD_RATES.get(currency, 1)
     amount_in_currency = invoice['amount_usd'] / rate
     
-    # Проверка баланса
+    # Повторная проверка баланса перед списанием
     payer_balance = db.get_balance(user_id, currency)
     if payer_balance < amount_in_currency:
         await callback.answer(f"Недостаточно средств. Баланс: {format_balance(payer_balance)} {currency}", show_alert=True)
@@ -729,10 +765,14 @@ async def process_payment(callback: types.CallbackQuery):
     # Запись платежа
     db.add_payment(invoice_id, user_id, currency, amount_in_currency, invoice['amount_usd'], comment, is_anonymous)
     
+    # 1. Сначала отправляем 👌
     await callback.answer("👌")
     
-    # Уведомление плательщику
-    payer_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счет #{invoice_id} на сумму {format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})"
+    # 2. Ждем 2 секунды
+    await asyncio.sleep(2)
+    
+    # 3. Отправляем сообщение плательщику
+    payer_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счет #{invoice_id} на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>"
     if comment:
         payer_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
     
@@ -741,7 +781,7 @@ async def process_payment(callback: types.CallbackQuery):
     except:
         pass
     
-    # Уведомление создателю счета
+    # 4. Отправляем сообщение создателю счета
     if is_anonymous:
         payer_name = "Аноним"
     else:
@@ -754,7 +794,7 @@ async def process_payment(callback: types.CallbackQuery):
     emoji_id = CRYPTO_EMOJIS.get(currency, "5310191758255099001")
     creator_text = (
         f"<b>{payer_name}</b> оплатил(а) ваш счет #{invoice_id}. "
-        f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> {format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})"
+        f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>"
     )
     
     if comment:
@@ -769,7 +809,7 @@ async def process_payment(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data in [
     "exchange", "p2p", "market", "checks",
     "cryptopay", "giveaways", "subscriptions", "settings",
-    "deposit", "withdraw", "view_invoices"
+    "deposit", "withdraw"
 ])
 async def placeholder(callback: types.CallbackQuery):
     await callback.answer("Раздел пока в разработке", show_alert=True)
