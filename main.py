@@ -18,9 +18,9 @@ db = Database()
 # ID администратора
 ADMIN_IDS = [7921743592]
 
-# ВАЖНО: Замените на вашу ссылку GitHub Pages!
+# ВАЖНО: Замените на вашу реальную ссылку GitHub Pages!
 # Пример: https://alexei37d-bit.github.io/sdfsdfsdfd/
-WEB_APP_URL = "https://github.com/alexei37d-bit/sdfsdfsdfd.git" 
+WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
     "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
@@ -139,7 +139,7 @@ main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         InlineKeyboardButton(text="Настройки", callback_data="settings", icon_custom_emoji_id="5309974037772928528")
     ],
     [
-        InlineKeyboardButton(text="🌐 Web App Баланс", web_app=WebAppInfo(url=WEB_APP_URL)) # Кнопка Web App
+        InlineKeyboardButton(text="🌐 Web App Баланс", web_app=WebAppInfo(url=WEB_APP_URL))
     ]
 ])
 
