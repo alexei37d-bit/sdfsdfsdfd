@@ -92,13 +92,11 @@
                 } else {
                     for (const curr of currencies) {
                         const amount = data.balances[curr];
-                        if (parseFloat(amount) > 0) {
-                            html += `
-                                <div class="row">
-                                    <span class="name">${curr}</span>
-                                    <span class="val">${amount}</span>
-                                </div>`;
-                        }
+                        html += `
+                            <div class="row">
+                                <span class="name">${curr}</span>
+                                <span class="val">${amount}</span>
+                            </div>`;
                     }
                 }
                 
