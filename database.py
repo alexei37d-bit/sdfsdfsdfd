@@ -87,7 +87,6 @@ class Database:
         return [row[0] for row in self.cursor.fetchall()]
     
     def get_active_invoices_for_list(self, user_id):
-        # Возвращаем только те, которые видны в списке (неоплаченные одноразовые или любые многоразовые)
         self.cursor.execute("SELECT invoice_id FROM invoices WHERE creator_id=? AND is_active=1 AND NOT (invoice_type='single' AND is_paid=1)", (user_id,))
         return [row[0] for row in self.cursor.fetchall()]
 
