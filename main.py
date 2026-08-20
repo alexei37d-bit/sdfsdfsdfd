@@ -83,7 +83,7 @@ def create_webapp_link(user_id):
         b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     
-    formatted_balances = {k: format_balance(v) for k, v in b.items() if v > 0}
+    formatted_balances = {curr: format_balance(b.get(curr, 0)) for curr in CURRENCY_ORDER}
     
     data_obj = {
         "balances": formatted_balances,
