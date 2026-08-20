@@ -140,7 +140,7 @@ def get_main_keyboard(user_id):
             InlineKeyboardButton(text="Настройки", callback_data="settings", icon_custom_emoji_id="5309974037772928528")
         ],
         [
-            InlineKeyboardButton(text="🌐 Web App Баланс", web_app=WebAppInfo(url=create_webapp_link(user_id)))
+            InlineKeyboardButton(text="🌐 Web App", web_app=WebAppInfo(url=create_webapp_link(user_id)))
         ]
     ])
 
