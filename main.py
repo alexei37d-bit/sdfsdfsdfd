@@ -774,7 +774,7 @@ async def process_payment(callback: types.CallbackQuery):
     # 4. Отправляем сообщение плательщику (как на фото)
     # Формат: Вы оплатили счёт #IV... на сумму 5 USD (5.000905 USDT).
     payer_text = (
-        f"<tg-emoji emoji-id=\"5312043357311111246\"></tg-emoji> Вы оплатили счёт #{invoice_id} "
+        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счёт #{invoice_id} "
         f"на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
     )
     if comment:
