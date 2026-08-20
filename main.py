@@ -18,8 +18,7 @@ db = Database()
 # ID администратора
 ADMIN_IDS = [7921743592]
 
-# ВАЖНО: Замените на вашу реальную ссылку GitHub Pages!
-# Пример: https://alexei37d-bit.github.io/sdfsdfsdfd/
+# Ссылка на ваше Mini App (GitHub Pages)
 WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
