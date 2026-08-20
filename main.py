@@ -20,7 +20,7 @@ ADMIN_IDS = [7921743592]
 
 # ВАЖНО: Замените на вашу ссылку GitHub Pages!
 # Пример: https://alexei37d-bit.github.io/sdfsdfsdfd/
-WEB_APP_URL = "https://ВАШ_НИК.github.io/ВАШ_РЕПОЗИТОРИЙ/" 
+WEB_APP_URL = "https://github.com/alexei37d-bit/sdfsdfsdfd.git" 
 
 crypto_websites = {
     "USDT": "https://tether.to", "GRAM": "https://ton.org", "SOL": "https://solana.com",
