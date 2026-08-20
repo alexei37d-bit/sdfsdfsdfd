@@ -41,7 +41,7 @@ CURRENCY_EMOJIS = {
     "SOL": "<tg-emoji emoji-id='5407016676342401484'>☺️</tg-emoji>",
     "TRX": "<tg-emoji emoji-id='5406978786140918829'>☺️</tg-emoji>",
     "BTC": "<tg-emoji emoji-id='5409133571233319295'>☺️</tg-emoji>",
-    "ETH": "<tg-emoji emoji-id='5406930321729948822'>☺️</tg-emoji>",
+    "ETH": "<tg-emoji emoji-id='5406930321729948822'>️☺️</tg-emoji>",
     "DOGE": "<tg-emoji emoji-id='5406581441536495663'>🐶</tg-emoji>",
     "LTC": "<tg-emoji emoji-id='5407128573125366746'>☺️</tg-emoji>",
     "BNB": "<tg-emoji emoji-id='5406671889252781489'>☺️</tg-emoji>",
@@ -301,11 +301,10 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         f"<b>Любой</b> может активировать этот чек.\n\n"
         f"Скопируйте ссылку, чтобы поделиться чеком:\n"
         f"<code>https://t.me/{BOT_USERNAME}?start=check_{check_id}</code>\n\n"
-        f"⚠️ <b>Никогда не делайте</b> скриншот вашего чека и не отправляйте его никому! Ссылку на чек могут использовать мошенники, чтобы получить <b>доступ к вашим средствам</b>."
+        f"️ <b>Никогда не делайте</b> скриншот вашего чека и не отправляйте его никому! Ссылку на чек могут использовать мошенники, чтобы получить <b>доступ к вашим средствам</b>."
     )
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Конвертировать в подарок", callback_data="convert_gift")],
         [InlineKeyboardButton(text="Поделиться чеком", switch_inline_query=check_id)],
         [InlineKeyboardButton(text="Показать QR-код", callback_data=f"show_qr_{check_id}")],
         [InlineKeyboardButton(text="Удалить чек", callback_data=f"delete_check_{check_id}")],
@@ -434,12 +433,16 @@ async def inline_handler(query: types.InlineQuery):
                 if curr == 'user_id': continue
                 if bal >= amount:
                     usd_val = get_usd_value(amount, curr)
-                    results.append(types.InlineQueryResultArticle(
+                    # ИСПРАВЛЕНО: Используем InlineQueryResultPhoto для отображения картинки сразу
+                    results.append(types.InlineQueryResultPhoto(
                         id=f"create_{curr}_{amount}",
+                        photo_url=await generate_check_image(curr, amount),
+                        thumbnail_url=await generate_check_image(curr, amount),
                         title=f"Чек на {amount} {curr}",
                         description=f"Баланс: {bal} {curr} (${get_usd_value(bal, curr)})",
-                        input_message_content=types.InputTextMessageContent(message_text=f"Создание чека на {amount} {curr}..."),
-                        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Создать чек", callback_data=f"inline_create_{curr}_{amount}")]])
+                        caption=f"<b>Чек на {amount} {curr}</b>\nНажмите кнопку ниже, чтобы получить.",
+                        parse_mode='HTML',
+                        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f"Получить {amount} {curr}", callback_data=f"activate_inline_{curr}_{amount}")]])
                     ))
             if results:
                 await query.answer(results, cache_time=0, is_personal=True)
@@ -451,21 +454,32 @@ async def inline_handler(query: types.InlineQuery):
         check = db.get_check(text)
         if check and check['is_active']:
             usd_val = get_usd_value(check['amount'], check['currency'])
-            results.append(types.InlineQueryResultArticle(
+            # ИСПРАВЛЕНО: Используем InlineQueryResultPhoto для отображения картинки сразу
+            results.append(types.InlineQueryResultPhoto(
                 id=text,
+                photo_url=await generate_check_image(check['currency'], check['amount']),
+                thumbnail_url=await generate_check_image(check['currency'], check['amount']),
                 title=f"Получить {check['amount']} {check['currency']}",
                 description=f"Сумма: ${usd_val}",
-                input_message_content=types.InputTextMessageContent(message_text=f"Активация чека на {check['amount']} {check['currency']}..."),
-                reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Активировать", callback_data=f"activate_{text}")]])
+                caption=f"<b>Чек на {check['amount']} {check['currency']}</b>\nНажмите кнопку ниже, чтобы получить.",
+                parse_mode='HTML',
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f"Получить {check['amount']} {check['currency']}", callback_data=f"activate_{text}")]])
             ))
             await query.answer(results, cache_time=0)
             return
             
     await query.answer([], cache_time=0)
 
-@dp.callback_query(lambda c: c.data.startswith("inline_create_"))
-async def process_inline_create(callback: types.CallbackQuery):
-    data_part = callback.data.replace("inline_create_", "")
+@dp.callback_query(lambda c: c.data.startswith("activate_inline_"))
+async def process_inline_create_and_activate(callback: types.CallbackQuery):
+    # Этот хендлер обрабатывает создание чека через инлайн и его немедленную отправку
+    # Но так как мы хотим, чтобы пользователь сначала создал чек, а потом поделился им,
+    # мы используем логику создания чека здесь, но без активации.
+    # Однако, согласно запросу, нужно чтобы при нажатии "Поделиться" появлялась картинка с кнопкой "Получить".
+    # Это реализуется через InlineQueryResultPhoto выше.
+    # Если же пользователь хочет именно СОЗДАТЬ чек через инлайн (без активации), то:
+    
+    data_part = callback.data.replace("activate_inline_", "")
     parts = data_part.split("_")
     currency = parts[0]
     amount_str = "_".join(parts[1:])
@@ -527,7 +541,7 @@ async def activate_inline_callback(callback: types.CallbackQuery):
     usd_val = get_usd_value(check['amount'], check['currency'])
     
     success_text = (
-        f"<tg-emoji emoji-id='5312043357311111246'></tg-emoji> Вы получили "
+        f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> "
         f"(<b>${usd_val}</b>)"
     )
