@@ -19,7 +19,6 @@ db = Database()
 ADMIN_IDS = [7921743592]
 
 # Ссылка на ваше Mini App (GitHub Pages)
-# Убедитесь, что файл index.html загружен в репозиторий!
 WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
