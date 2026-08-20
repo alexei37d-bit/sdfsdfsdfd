@@ -3,7 +3,7 @@ import random
 import string
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, InlineQueryResultArticle, InputTextMessageContent
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.exceptions import TelegramBadRequest
@@ -49,6 +49,7 @@ CURRENCY_EMOJIS = {
     "XAUT": "<tg-emoji emoji-id='5407080001340215945'>😊</tg-emoji>"
 }
 
+
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 def format_balance(value):
     if value == 0: return "0"
@@ -77,12 +78,12 @@ def get_wallet_text(user_id: int):
         b = {k: 0.0 for k in ["USDT", "GRAM", "SOL", "TRX", "BTC", "ETH", "DOGE", "LTC", "BNB", "USDC", "XAUT"]}
     
     total_btc = sum([
-        b["USDT"]*0.00001, b["GRAM"]*0.0000001, b["SOL"]*0.002, b["TRX"]*0.000002,
-        b["BTC"], b["ETH"]*0.03, b["DOGE"]*0.000001, b["LTC"]*0.001,
-        b["BNB"]*0.005, b["USDC"]*0.00001, b["XAUT"]*0.03
-    ])
+         b["USDT"]*0.00001, b["GRAM"]*0.0000001, b["SOL"]*0.002, b["TRX"]*0.000002,
+         b["BTC"], b["ETH"]*0.03, b["DOGE"]*0.000001, b["LTC"]*0.001,
+         b["BNB"]*0.005, b["USDC"]*0.00001, b["XAUT"]*0.03
+     ])
     
-    text = (
+  text = (
         f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
         f"<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji> <a href='{crypto_websites['USDT']}'>Tether</a>: {format_balance(b['USDT'])} USDT\n\n"
         f"<tg-emoji emoji-id='5318901904686754959'>🙂</tg-emoji> <a href='{crypto_websites['GRAM']}'>Gram</a>: {format_balance(b['GRAM'])} GRAM\n\n"
@@ -141,19 +142,18 @@ class CheckCreation(StatesGroup):
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     db.add_user(message.from_user.id)
-    
     # Начисление 100 USDT админам один раз
     if message.from_user.id in ADMIN_IDS:
         usdt_balance = db.get_balance(message.from_user.id, "USDT")
         if usdt_balance == 0:
             db.update_balance(message.from_user.id, "USDT", 100)
-    
+            
     args = message.text.split()
     if len(args) > 1 and args[1].startswith("check_"):
         check_id = args[1].replace("check_", "")
         await activate_check_logic(message, check_id)
         return
-    
+        
     text = (
         "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji> "
         "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
@@ -177,7 +177,7 @@ async def open_wallet(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "back_to_main")
 async def back_to_main(callback: types.CallbackQuery):
     text = (
-        "<tg-emoji emoji-id=\"5361914370068613491\">👛</tg-emoji> "
+        "<tg-emoji emoji-id='5361914370068613491'>👛</tg-emoji> "
         "<a href='https://t.me/Crypto_Bot_RUSSIA/6'>Мультивалютный криптокошелек</a>\n\n"
         "Покупайте, продавайте, храните,\n"
         "отправляйте и платите криптовалютой,\n"
@@ -193,25 +193,21 @@ async def back_to_main(callback: types.CallbackQuery):
     await callback.answer()
 
 # ================= СИСТЕМА ЧЕКОВ =================
-
 @dp.callback_query(lambda c: c.data == "checks")
 async def checks_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     active_checks = db.get_user_checks(user_id)
-    
     text = (
         "Здесь вы можете создавать чек для мгновенной отправки криптовалюты любому пользователю.\n"
         "<a href='https://telegra.ph/Checks-Instruction'>Смотреть инструкцию ›</a>"
     )
-    
     buttons = [
         [InlineKeyboardButton(text="Создать чек", callback_data="create_check_start")],
         [InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")]
     ]
-    
     if active_checks:
         buttons.insert(1, [InlineKeyboardButton(text=f"📂 Активные чеки ({len(active_checks)})", callback_data="my_active_checks")])
-    
+        
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_text(text, parse_mode='HTML', reply_markup=kb)
     await callback.answer()
@@ -220,8 +216,8 @@ async def checks_menu(callback: types.CallbackQuery):
 async def create_check_start(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     balances = db.get_all_balances(user_id)
-    
     available_currencies = []
+    
     for curr, bal in balances.items():
         if curr == 'user_id': continue
         usd_val = bal * USD_RATES.get(curr, 0)
@@ -254,7 +250,6 @@ async def select_check_currency_fsm(callback: types.CallbackQuery, state: FSMCon
     currency = callback.data.split("_")[-1]
     await state.set_state(CheckCreation.waiting_for_amount)
     await state.update_data(selected_currency=currency)
-    
     text = f"Пришлите сумму чека в {currency}.\nВведите сумму чека:"
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="‹ Назад", callback_data="checks")]])
     await callback.message.edit_text(text, reply_markup=kb)
@@ -273,7 +268,6 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         
     min_amount_usd = 0.02
     current_usd = amount * USD_RATES.get(currency, 0)
-    
     if current_usd < min_amount_usd:
         await message.answer(f"Минимальная сумма чека $0.02. Для {currency} это примерно {min_amount_usd / USD_RATES.get(currency, 1):.4f}.")
         return
@@ -285,13 +279,11 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         return
         
     db.update_balance(message.from_user.id, currency, -amount)
-    
     check_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     db.create_check(check_id, message.from_user.id, currency, amount)
     
     img_url = await generate_check_image(currency, amount)
     usd_val = get_usd_value(amount, currency)
-    
     curr_emoji = CURRENCY_EMOJIS.get(currency, "")
     
     # ОФОРМЛЕНИЕ КАК НА ФОТО 2 (ссылка на фото, текст как у @send)
@@ -301,7 +293,7 @@ async def process_check_amount(message: types.Message, state: FSMContext):
         f"<b>Любой</b> может активировать этот чек.\n\n"
         f"Скопируйте ссылку, чтобы поделиться чеком:\n"
         f"<code>https://t.me/{BOT_USERNAME}?start=check_{check_id}</code>\n\n"
-        f"️ <b>Никогда не делайте</b> скриншот вашего чека и не отправляйте его никому! Ссылку на чек могут использовать мошенники, чтобы получить <b>доступ к вашим средствам</b>."
+        f"⚠️ <b>Никогда не делайте</b> скриншот вашего чека и не отправляйте его никому! Ссылку на чек могут использовать мошенники, чтобы получить <b>доступ к вашим средствам</b>."
     )
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -326,8 +318,8 @@ async def my_active_checks(callback: types.CallbackQuery):
         usd_val = get_usd_value(check['amount'], check['currency'])
         btn_text = f"{check['currency']} {check['amount']} (${usd_val})"
         rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"manage_check_{check['id']}")])
+        
     rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="checks")])
-    
     kb = InlineKeyboardMarkup(inline_keyboard=rows)
     await callback.message.edit_text("Ваши активные чеки:", reply_markup=kb)
     await callback.answer()
@@ -336,14 +328,12 @@ async def my_active_checks(callback: types.CallbackQuery):
 async def manage_check(callback: types.CallbackQuery):
     check_id = callback.data.split("_")[-1]
     check = db.get_check(check_id)
-    
     if not check or check['creator_id'] != callback.from_user.id:
         await callback.answer("Чек не найден", show_alert=True)
         return
         
     img_url = await generate_check_image(check['currency'], check['amount'])
     usd_val = get_usd_value(check['amount'], check['currency'])
-    
     curr_emoji = CURRENCY_EMOJIS.get(check['currency'], "")
     
     caption = (
@@ -369,7 +359,6 @@ async def manage_check(callback: types.CallbackQuery):
 async def delete_check(callback: types.CallbackQuery):
     check_id = callback.data.split("_")[-1]
     check = db.get_check(check_id)
-    
     if check and check['creator_id'] == callback.from_user.id:
         db.delete_check(check_id, callback.from_user.id)
         db.update_balance(callback.from_user.id, check['currency'], check['amount'])
@@ -386,15 +375,12 @@ async def activate_check_logic(message: types.Message, check_id: str):
         
     activator_id = message.from_user.id
     # ИСПРАВЛЕНО: Можно активировать свои чеки
-    
     db.update_balance(activator_id, check['currency'], check['amount'])
     db.activate_check(check_id, activator_id)
     
     usd_val = get_usd_value(check['amount'], check['currency'])
-    
     # ОФОРМЛЕНИЕ КАК НА ФОТО 1
     img_url = await generate_check_image(check['currency'], check['amount'])
-    
     caption = (
         f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> (<b>${usd_val}</b>)"
@@ -433,15 +419,16 @@ async def inline_handler(query: types.InlineQuery):
                 if curr == 'user_id': continue
                 if bal >= amount:
                     usd_val = get_usd_value(amount, curr)
-                    # ИСПРАВЛЕНО: Используем InlineQueryResultPhoto для отображения картинки сразу
-                    results.append(types.InlineQueryResultPhoto(
+                    # ИСПРАВЛЕНО: Используем InlineQueryResultArticle для отображения кнопки "Получить" как на фото
+                    results.append(types.InlineQueryResultArticle(
                         id=f"create_{curr}_{amount}",
-                        photo_url=await generate_check_image(curr, amount),
-                        thumbnail_url=await generate_check_image(curr, amount),
                         title=f"Чек на {amount} {curr}",
                         description=f"Баланс: {bal} {curr} (${get_usd_value(bal, curr)})",
-                        caption=f"<b>Чек на {amount} {curr}</b>\nНажмите кнопку ниже, чтобы получить.",
-                        parse_mode='HTML',
+                        thumbnail_url=await generate_check_image(curr, amount),
+                        input_message_content=InputTextMessageContent(
+                            message_text=f"<tg-emoji emoji-id=\"5311998535032409760\">🦋</tg-emoji> Чек на <tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> {amount} {curr} (${usd_val}).",
+                            parse_mode='HTML'
+                        ),
                         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f"Получить {amount} {curr}", callback_data=f"activate_inline_{curr}_{amount}")]])
                     ))
             if results:
@@ -454,15 +441,16 @@ async def inline_handler(query: types.InlineQuery):
         check = db.get_check(text)
         if check and check['is_active']:
             usd_val = get_usd_value(check['amount'], check['currency'])
-            # ИСПРАВЛЕНО: Используем InlineQueryResultPhoto для отображения картинки сразу
-            results.append(types.InlineQueryResultPhoto(
+            # ИСПРАВЛЕНО: Используем InlineQueryResultArticle для отображения кнопки "Получить" как на фото
+            results.append(types.InlineQueryResultArticle(
                 id=text,
-                photo_url=await generate_check_image(check['currency'], check['amount']),
-                thumbnail_url=await generate_check_image(check['currency'], check['amount']),
                 title=f"Получить {check['amount']} {check['currency']}",
                 description=f"Сумма: ${usd_val}",
-                caption=f"<b>Чек на {check['amount']} {check['currency']}</b>\nНажмите кнопку ниже, чтобы получить.",
-                parse_mode='HTML',
+                thumbnail_url=await generate_check_image(check['currency'], check['amount']),
+                input_message_content=InputTextMessageContent(
+                    message_text=f" <tg-emoji emoji-id=\"5311998535032409760\">🦋</tg-emoji> Чек на <tg-emoji emoji-id=\"5406841020769936275\">☺️</tg-emoji> {check['amount']} {check['currency']} (${usd_val}).",
+                    parse_mode='HTML'
+                ),
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=f"Получить {check['amount']} {check['currency']}", callback_data=f"activate_{text}")]])
             ))
             await query.answer(results, cache_time=0)
@@ -473,12 +461,6 @@ async def inline_handler(query: types.InlineQuery):
 @dp.callback_query(lambda c: c.data.startswith("activate_inline_"))
 async def process_inline_create_and_activate(callback: types.CallbackQuery):
     # Этот хендлер обрабатывает создание чека через инлайн и его немедленную отправку
-    # Но так как мы хотим, чтобы пользователь сначала создал чек, а потом поделился им,
-    # мы используем логику создания чека здесь, но без активации.
-    # Однако, согласно запросу, нужно чтобы при нажатии "Поделиться" появлялась картинка с кнопкой "Получить".
-    # Это реализуется через InlineQueryResultPhoto выше.
-    # Если же пользователь хочет именно СОЗДАТЬ чек через инлайн (без активации), то:
-    
     data_part = callback.data.replace("activate_inline_", "")
     parts = data_part.split("_")
     currency = parts[0]
@@ -492,19 +474,16 @@ async def process_inline_create_and_activate(callback: types.CallbackQuery):
         
     user_id = callback.from_user.id
     balance = db.get_balance(user_id, currency)
-    
     if balance < amount:
         await callback.answer("Недостаточно средств", show_alert=True)
         return
         
     db.update_balance(user_id, currency, -amount)
-    
     check_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     db.create_check(check_id, user_id, currency, amount)
     
     img_url = await generate_check_image(currency, amount)
     usd_val = get_usd_value(amount, currency)
-    
     curr_emoji = CURRENCY_EMOJIS.get(currency, "")
     
     # ОФОРМЛЕНИЕ КАК НА ФОТО 2
@@ -527,19 +506,16 @@ async def process_inline_create_and_activate(callback: types.CallbackQuery):
 async def activate_inline_callback(callback: types.CallbackQuery):
     check_id = callback.data.replace("activate_", "")
     check = db.get_check(check_id)
-    
     if not check or not check['is_active']:
         await callback.answer("Чек уже активирован!", show_alert=True)
         return
         
     activator_id = callback.from_user.id
     # ИСПРАВЛЕНО: Можно активировать свои чеки
-    
     db.update_balance(activator_id, check['currency'], check['amount'])
     db.activate_check(check_id, activator_id)
     
     usd_val = get_usd_value(check['amount'], check['currency'])
-    
     success_text = (
         f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> "
@@ -564,7 +540,7 @@ async def activate_inline_callback(callback: types.CallbackQuery):
             parse_mode='HTML',
             reply_markup=check_received_keyboard
         )
-    
+        
     creator_id = check['creator_id']
     if activator_id != creator_id:
         notify_text = (
@@ -576,7 +552,7 @@ async def activate_inline_callback(callback: types.CallbackQuery):
             await bot.send_message(creator_id, notify_text, parse_mode='HTML')
         except:
             pass
-        
+            
     await callback.answer("Чек активирован!")
 
 @dp.callback_query(lambda c: c.data in ["exchange", "p2p", "market", "invoices", "cryptopay", "giveaways", "subscriptions", "settings", "deposit", "withdraw", "convert_gift"])
