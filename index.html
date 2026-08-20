@@ -8,8 +8,8 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
+            background-color: #ffffff;
+            color: #000000;
             padding: 20px;
             margin: 0;
             display: flex;
@@ -28,10 +28,10 @@
             height: 64px;
             margin-bottom: 10px;
         }
-        h1 { font-size: 22px; margin: 0; text-align: center; }
+        h1 { font-size: 22px; margin: 0; text-align: center; color: #000000; }
         
         .card {
-            background-color: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            background-color: #f1f1f1;
             border-radius: 15px;
             padding: 15px;
             width: 100%;
@@ -46,9 +46,9 @@
             border-bottom: 1px solid rgba(128, 128, 128, 0.1);
         }
         .row:last-child { border-bottom: none; }
-        .name { font-weight: 500; opacity: 0.8; display: flex; align-items: center; gap: 5px; }
-        .val { font-weight: bold; font-family: monospace; font-size: 1.1em; }
-        .total { text-align: center; margin-top: 15px; font-size: 14px; opacity: 0.7; }
+        .name { font-weight: 500; opacity: 0.8; display: flex; align-items: center; gap: 5px; color: #000000; }
+        .val { font-weight: bold; font-family: monospace; font-size: 1.1em; color: #000000; }
+        .total { text-align: center; margin-top: 15px; font-size: 14px; opacity: 0.7; color: #000000; }
         
         .error-msg { color: #ff4b4b; text-align: center; margin-top: 20px; }
     </style>
@@ -57,8 +57,8 @@
     <div class="header">
         <!-- SVG Картинка Кошелька -->
         <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 7.28V5C21 3.89 20.1 3 19 3H5C3.89 3 3 3.89 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V16.72C21.59 16.37 22 15.74 22 15V9C22 8.26 21.59 7.63 21 7.28ZM20 9V15H13C11.9 15 11 15.9 11 17C11 18.1 11.9 19 13 19H20V19C20 19.55 19.55 20 19 20H5C4.45 20 4 19.55 4 19V5C4 4.45 4.45 4 5 4H19C19.55 4 20 4.45 20 5V7.28C19.41 7.63 19 8.26 19 9H13C11.9 9 11 9.9 11 11C11 12.1 11.9 13 13 13H20C20.55 13 21 12.55 21 12V9C21 8.45 20.55 8 20 8H13V10H20V12H13V14H20V15H13C12.45 15 12 14.55 12 14C12 13.45 12.45 13 13 13H20V9H13V11H20V13H13" fill="var(--tg-theme-link-color, #2481cc)"/>
-            <circle cx="17" cy="11" r="1.5" fill="var(--tg-theme-bg-color, #fff)"/>
+            <path d="M21 7.28V5C21 3.89 20.1 3 19 3H5C3.89 3 3 3.89 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V16.72C21.59 16.37 22 15.74 22 15V9C22 8.26 21.59 7.63 21 7.28ZM20 9V15H13C11.9 15 11 15.9 11 17C11 18.1 11.9 19 13 19H20V19C20 19.55 19.55 20 19 20H5C4.45 20 4 19.55 4 19V5C4 4.45 4.45 4 5 4H19C19.55 4 20 4.45 20 5V7.28C19.41 7.63 19 8.26 19 9H13C11.9 9 11 9.9 11 11C11 12.1 11.9 13 13 13H20C20.55 13 21 12.55 21 12V9C21 8.45 20.55 8 20 8H13V10H20V12H13V14H20V15H13C12.45 15 12 14.55 12 14C12 13.45 12.45 13 13 13H20V9H13V11H20V13H13" fill="#2481cc"/>
+            <circle cx="17" cy="11" r="1.5" fill="#ffffff"/>
         </svg>
         <h1>Ваш Баланс</h1>
     </div>
