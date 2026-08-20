@@ -73,7 +73,6 @@ def get_wallet_text(user_id: int):
     if not b:
         b = {k: 0.0 for k in CURRENCY_ORDER}
     
-    # Безопасный расчет общего баланса в BTC
     total_btc = sum([
         b.get("USDT", 0)*0.00001, b.get("GRAM", 0)*0.0000001, b.get("SOL", 0)*0.002, 
         b.get("TRX", 0)*0.000002, b.get("BTC", 0), b.get("ETH", 0)*0.03, 
@@ -517,7 +516,6 @@ async def inline_query_handler(query: types.InlineQuery):
     
     bot_username = (await bot.get_me()).username
     
-    # Разный текст для одноразового и многоразового
     if invoice['invoice_type'] == 'multi':
         title_text = f"Многоразовый счет на ${invoice['amount_usd']}"
     else:
@@ -556,7 +554,8 @@ async def handle_invoice_payment_start(message, invoice_id):
     for currency in invoice['currencies']:
         rate = USD_RATES.get(currency, 1)
         amount_in_currency = invoice['amount_usd'] / rate
-        btn_text = f"{currency} ({format_balance(amount_in_currency)})"
+        # Формат как на фото: SOL · 0.05772 SOL
+        btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
         keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
     
     keyboard_rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")])
@@ -580,21 +579,7 @@ async def select_payment_currency(callback: types.CallbackQuery):
     
     user_id = callback.from_user.id
     
-    # Проверка баланса ПЕРЕД показом подтверждения
-    payer_balance = db.get_balance(user_id, currency)
-    if payer_balance < amount_in_currency:
-        text = f"❌ Недостаточно средств для оплаты в {currency}.\n\nБаланс: {format_balance(payer_balance)} {currency}\nТребуется: {format_balance(amount_in_currency)} {currency}"
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="‹ Назад", callback_data=f"back_to_payment_select_{invoice_id}")]
-        ])
-        try:
-            await callback.message.edit_text(text, reply_markup=keyboard)
-        except TelegramBadRequest:
-            pass
-        await callback.answer()
-        return
-
-    # Если баланс есть, показываем подтверждение
+    # Сохраняем состояние, но НЕ проверяем баланс здесь
     user_states[user_id] = {
         'step': 'confirm_payment',
         'invoice_id': invoice_id,
@@ -605,7 +590,7 @@ async def select_payment_currency(callback: types.CallbackQuery):
     }
     
     text = (
-        f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
+        f"<tg-emoji emoji-id=\"5312043357311111246\"></tg-emoji> <b>Подтвердите оплату счета #{invoice_id}</b>\n\n"
         f"<b>Отправляете:</b> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>\n\n"
         f"Вы уверены, что хотите оплатить этот счет?"
     )
@@ -707,7 +692,7 @@ async def back_to_payment_select(callback: types.CallbackQuery):
     for currency in invoice['currencies']:
         rate = USD_RATES.get(currency, 1)
         amount_in_currency = invoice['amount_usd'] / rate
-        btn_text = f"{currency} ({format_balance(amount_in_currency)})"
+        btn_text = f"{currency} · {format_balance(amount_in_currency)} {currency}"
         keyboard_rows.append([InlineKeyboardButton(text=btn_text, callback_data=f"pay_invoice_{invoice_id}_{currency}")])
     
     keyboard_rows.append([InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")])
@@ -742,10 +727,18 @@ async def process_payment(callback: types.CallbackQuery):
     rate = USD_RATES.get(currency, 1)
     amount_in_currency = invoice['amount_usd'] / rate
     
-    # Повторная проверка баланса перед списанием
+    # ПРОВЕРКА БАЛАНСА ТОЛЬКО ЗДЕСЬ (при нажатии Оплатить)
     payer_balance = db.get_balance(user_id, currency)
     if payer_balance < amount_in_currency:
-        await callback.answer(f"Недостаточно средств. Баланс: {format_balance(payer_balance)} {currency}", show_alert=True)
+        text = "❌ Недостаточно средств."
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="‹ Назад", callback_data=f"back_to_payment_select_{invoice_id}")]
+        ])
+        try:
+            await callback.message.edit_text(text, reply_markup=keyboard)
+        except TelegramBadRequest:
+            pass
+        await callback.answer()
         return
     
     # Обработка платежа
@@ -765,14 +758,25 @@ async def process_payment(callback: types.CallbackQuery):
     # Запись платежа
     db.add_payment(invoice_id, user_id, currency, amount_in_currency, invoice['amount_usd'], comment, is_anonymous)
     
-    # 1. Сначала отправляем 👌
-    await callback.answer("👌")
+    # 1. Удаляем сообщение с подтверждением оплаты
+    try:
+        await callback.message.delete()
+    except:
+        pass
     
-    # 2. Ждем 2 секунды
+    # 2. Отправляем только смайлик 👌 отдельным сообщением
+    await callback.answer() # Просто закрываем loading state кнопки
+    ok_msg = await bot.send_message(user_id, "👌")
+    
+    # 3. Ждем 2 секунды
     await asyncio.sleep(2)
     
-    # 3. Отправляем сообщение плательщику
-    payer_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji> Вы оплатили счет #{invoice_id} на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>"
+    # 4. Отправляем сообщение плательщику (как на фото)
+    # Формат: Вы оплатили счёт #IV... на сумму 5 USD (5.000905 USDT).
+    payer_text = (
+        f"<tg-emoji emoji-id=\"5312043357311111246\"></tg-emoji> Вы оплатили счёт #{invoice_id} "
+        f"на сумму <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
+    )
     if comment:
         payer_text += f"\n\n<tg-emoji emoji-id=\"5312103894875143512\">💬</tg-emoji> {comment}"
     
@@ -781,7 +785,7 @@ async def process_payment(callback: types.CallbackQuery):
     except:
         pass
     
-    # 4. Отправляем сообщение создателю счета
+    # 5. Отправляем сообщение создателю счета
     if is_anonymous:
         payer_name = "Аноним"
     else:
@@ -794,7 +798,7 @@ async def process_payment(callback: types.CallbackQuery):
     emoji_id = CRYPTO_EMOJIS.get(currency, "5310191758255099001")
     creator_text = (
         f"<b>{payer_name}</b> оплатил(а) ваш счет #{invoice_id}. "
-        f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>"
+        f"Вы получили <tg-emoji emoji-id=\"{emoji_id}\">☺️</tg-emoji> <b>{format_balance(amount_in_currency)} {currency} (${invoice['amount_usd']})</b>."
     )
     
     if comment:
