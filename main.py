@@ -16,7 +16,10 @@ dp = Dispatcher()
 db = Database()
 
 # ID администраторов (ЗАМЕНИТЕ НА РЕАЛЬНЫЕ ID)
-ADMIN_IDS = [7921743592, 987654321]  # <-- Впишите сюда ID админов через запятую
+ADMIN_IDS = [123456789, 987654321]  # <-- Впишите сюда ID админов через запятую
+
+# Глобальная переменная для username бота
+BOT_USERNAME = ""
 
 # ИСПРАВЛЕНО: Убраны пробелы в ключах!
 crypto_websites = {
@@ -29,6 +32,21 @@ crypto_websites = {
 USD_RATES = {
     "USDT": 1.0, "USDC": 1.0, "BTC": 65000, "ETH": 3500, "SOL": 150,
     "GRAM": 0.007, "TRX": 0.12, "DOGE": 0.15, "LTC": 70, "BNB": 600, "XAUT": 2300
+}
+
+# Эмодзи для валют в чеках
+CURRENCY_EMOJIS = {
+    "USDT": "<tg-emoji emoji-id='5406841020769936275'>☺️</tg-emoji>",
+    "GRAM": "<tg-emoji emoji-id='5318901904686754959'>🙂</tg-emoji>",
+    "SOL": "<tg-emoji emoji-id='5407016676342401484'>☺️</tg-emoji>",
+    "TRX": "<tg-emoji emoji-id='5406978786140918829'>☺️</tg-emoji>",
+    "BTC": "<tg-emoji emoji-id='5409133571233319295'>☺️</tg-emoji>",
+    "ETH": "<tg-emoji emoji-id='5406930321729948822'>☺️</tg-emoji>",
+    "DOGE": "<tg-emoji emoji-id='5406581441536495663'>🐶</tg-emoji>",
+    "LTC": "<tg-emoji emoji-id='5407128573125366746'>☺️</tg-emoji>",
+    "BNB": "<tg-emoji emoji-id='5406671889252781489'>☺️</tg-emoji>",
+    "USDC": "<tg-emoji emoji-id='5406575600380974539'>☺️</tg-emoji>",
+    "XAUT": "<tg-emoji emoji-id='5407080001340215945'>😊</tg-emoji>"
 }
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
@@ -109,6 +127,11 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")]
 ])
 
+# Клавиатура для сообщения о получении чека
+check_received_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Открыть кошелек", callback_data="wallet")]
+])
+
 # --- FSM ДЛЯ ЧЕКОВ ---
 class CheckCreation(StatesGroup):
     waiting_for_amount = State()
@@ -187,7 +210,7 @@ async def checks_menu(callback: types.CallbackQuery):
     ]
     
     if active_checks:
-        buttons.insert(1, [InlineKeyboardButton(text=f"Активные чеки ({len(active_checks)})", callback_data="my_active_checks")])
+        buttons.insert(1, [InlineKeyboardButton(text=f"📂 Активные чеки ({len(active_checks)})", callback_data="my_active_checks")])
     
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_text(text, parse_mode='HTML', reply_markup=kb)
@@ -269,12 +292,15 @@ async def process_check_amount(message: types.Message, state: FSMContext):
     img_url = await generate_check_image(currency, amount)
     usd_val = get_usd_value(amount, currency)
     
+    # Получаем эмодзи валюты
+    curr_emoji = CURRENCY_EMOJIS.get(currency, "")
+    
     caption = (
-        f"<b>Чек</b>\n\n"
+        f"<tg-emoji emoji-id='5311998535032409760'>🦋</tg-emoji> Чек на {curr_emoji} {amount} {currency}\n\n"
         f"Сумма: {amount} {currency} (${usd_val})\n\n"
         f"Любой может активировать этот чек.\n\n"
         f"Скопируйте ссылку, чтобы поделиться чеком:\n"
-        f"<code>https://t.me/{bot.username}?start=check_{check_id}</code>\n\n"
+        f"<code>https://t.me/{BOT_USERNAME}?start=check_{check_id}</code>\n\n"
         f"⚠️ Никогда не делайте скриншот вашего чека и не отправляйте его никому!"
     )
     
@@ -319,10 +345,12 @@ async def manage_check(callback: types.CallbackQuery):
     img_url = await generate_check_image(check['currency'], check['amount'])
     usd_val = get_usd_value(check['amount'], check['currency'])
     
+    curr_emoji = CURRENCY_EMOJIS.get(check['currency'], "")
+    
     caption = (
-        f"<b>Чек</b>\n\n"
+        f"<tg-emoji emoji-id='5311998535032409760'>🦋</tg-emoji> Чек на {curr_emoji} {check['amount']} {check['currency']}\n\n"
         f"Сумма: {check['amount']} {check['currency']} (${usd_val})\n\n"
-        f"Ссылка: <code>https://t.me/{bot.username}?start=check_{check_id}</code>"
+        f"Ссылка: <code>https://t.me/{BOT_USERNAME}?start=check_{check_id}</code>"
     )
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -367,16 +395,11 @@ async def activate_check_logic(message: types.Message, check_id: str):
     
     usd_val = get_usd_value(check['amount'], check['currency'])
     
-    # ДОБАВЛЕНО: Кнопка "Открыть кошелек"
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Открыть кошелек", callback_data="wallet")]
-    ])
-    
     await message.answer(
         f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> (<b>${usd_val}</b>)",
         parse_mode='HTML',
-        reply_markup=kb  # Кнопка остается навсегда
+        reply_markup=check_received_keyboard
     )
     
     creator_id = check['creator_id']
@@ -461,10 +484,12 @@ async def process_inline_create(callback: types.CallbackQuery):
     img_url = await generate_check_image(currency, amount)
     usd_val = get_usd_value(amount, currency)
     
+    curr_emoji = CURRENCY_EMOJIS.get(currency, "")
+    
     caption = (
-        f"<b>Чек</b>\n\n"
+        f"<tg-emoji emoji-id='5311998535032409760'>🦋</tg-emoji> Чек на {curr_emoji} {amount} {currency}\n\n"
         f"Сумма: {amount} {currency} (${usd_val})\n\n"
-        f"Ссылка: <code>https://t.me/{bot.username}?start=check_{check_id}</code>"
+        f"Ссылка: <code>https://t.me/{BOT_USERNAME}?start=check_{check_id}</code>"
     )
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -494,17 +519,12 @@ async def activate_inline_callback(callback: types.CallbackQuery):
     
     usd_val = get_usd_value(check['amount'], check['currency'])
     
-    # ДОБАВЛЕНО: Кнопка "Открыть кошелек"
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Открыть кошелек", callback_data="wallet")]
-    ])
-    
     success_text = (
         f"<tg-emoji emoji-id='5312043357311111246'>📥</tg-emoji> Вы получили "
         f"<b>{check['amount']} {check['currency']}</b> "
         f"(<b>${usd_val}</b>)"
     )
-    await callback.message.edit_text(success_text, parse_mode='HTML', reply_markup=kb)
+    await callback.message.edit_text(success_text, parse_mode='HTML', reply_markup=check_received_keyboard)
     
     creator_id = check['creator_id']
     notify_text = (
@@ -525,6 +545,12 @@ async def placeholder(callback: types.CallbackQuery):
 
 async def main():
     print("Бот запущен...")
+    # Получаем username бота один раз при старте
+    me = await bot.get_me()
+    global BOT_USERNAME
+    BOT_USERNAME = me.username
+    print(f"Username бота: @{BOT_USERNAME}")
+    
     try:
         await dp.start_polling(bot)
     finally:
