@@ -8,18 +8,10 @@ class Database:
         self.create_tables()
     
     def create_tables(self):
-        # Таблица пользователей
         self.cursor.execute("CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-        
-        # Таблица балансов
         self.cursor.execute("CREATE TABLE IF NOT EXISTS balances (user_id INTEGER, currency TEXT, amount REAL DEFAULT 0, PRIMARY KEY (user_id, currency))")
-        
-        # Таблица счетов
         self.cursor.execute("CREATE TABLE IF NOT EXISTS invoices (invoice_id TEXT PRIMARY KEY, creator_id INTEGER, amount_usd REAL, currencies TEXT, invoice_type TEXT, allow_comments INTEGER DEFAULT 1, allow_anonymous INTEGER DEFAULT 1, is_paid INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-        
-        # Таблица платежей
         self.cursor.execute("CREATE TABLE IF NOT EXISTS payments (payment_id INTEGER PRIMARY KEY AUTOINCREMENT, invoice_id TEXT, payer_id INTEGER, currency TEXT, amount_sent REAL, amount_usd REAL, comment TEXT, is_anonymous INTEGER DEFAULT 0, paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-        
         self.conn.commit()
     
     def add_user(self, user_id):
@@ -94,6 +86,11 @@ class Database:
         self.cursor.execute('SELECT invoice_id FROM invoices WHERE creator_id=? AND is_active=1', (user_id,))
         return [row[0] for row in self.cursor.fetchall()]
     
+    def get_active_invoices_for_list(self, user_id):
+        # Возвращаем только те, которые видны в списке (неоплаченные одноразовые или любые многоразовые)
+        self.cursor.execute("SELECT invoice_id FROM invoices WHERE creator_id=? AND is_active=1 AND NOT (invoice_type='single' AND is_paid=1)", (user_id,))
+        return [row[0] for row in self.cursor.fetchall()]
+
     def add_payment(self, invoice_id, payer_id, currency, amount_sent, amount_usd, comment='', is_anonymous=0):
         self.cursor.execute("INSERT INTO payments (invoice_id, payer_id, currency, amount_sent, amount_usd, comment, is_anonymous) VALUES (?, ?, ?, ?, ?, ?, ?)", 
             (invoice_id, payer_id, currency, amount_sent, amount_usd, comment, is_anonymous))
