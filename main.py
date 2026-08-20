@@ -18,8 +18,8 @@ db = Database()
 # ID администратора
 ADMIN_IDS = [7921743592]
 
-# ВАЖНО: Замените на вашу реальную ссылку GitHub Pages!
-# Пример: https://alexei37d-bit.github.io/sdfsdfsdfd/
+# Ссылка на ваше Mini App (GitHub Pages)
+# Убедитесь, что файл index.html загружен в репозиторий!
 WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
@@ -108,9 +108,7 @@ def get_wallet_text(user_id: int):
         b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     sorted_currencies = get_sorted_currencies(user_id)
-    # Добавляем SVG иконку в начало текста
-    svg_icon = '<tg-emoji emoji-id="5310191758255099001">👛</tg-emoji>'
-    text = f"<b>{svg_icon} Кошелек</b>\n\n"
+    text = f"<b><tg-emoji emoji-id='5310191758255099001'>👛</tg-emoji> Кошелек</b>\n\n"
     for currency in sorted_currencies:
         emoji_id = CRYPTO_EMOJIS[currency]
         balance = b.get(currency, 0)
