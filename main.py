@@ -116,31 +116,33 @@ def get_wallet_text(user_id: int):
     text += f"≈ {format_balance(total_btc)} BTC"
     return text
 
-main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [
-        InlineKeyboardButton(text="Кошелёк", callback_data="wallet", icon_custom_emoji_id="5310191758255099001"),
-        InlineKeyboardButton(text="Обмен", callback_data="exchange", icon_custom_emoji_id="5361993818373655559")
-    ],
-    [
-        InlineKeyboardButton(text="P2P", callback_data="p2p", icon_custom_emoji_id="5312419154064607942"),
-        InlineKeyboardButton(text="Биржа", callback_data="market", icon_custom_emoji_id="5312212278374861302")
-    ],
-    [
-        InlineKeyboardButton(text="Чеки", callback_data="checks", icon_custom_emoji_id="5311998535032409760"),
-        InlineKeyboardButton(text="Счета", callback_data="invoices", icon_custom_emoji_id="5312043357311111246")
-    ],
-    [
-        InlineKeyboardButton(text="Crypto Pay", callback_data="cryptopay", icon_custom_emoji_id="5361543877599724417"),
-        InlineKeyboardButton(text="Розыгрыши", callback_data="giveaways", icon_custom_emoji_id="5361986358015463601")
-    ],
-    [
-        InlineKeyboardButton(text="Подписки", callback_data="subscriptions", icon_custom_emoji_id="5312161417372142817"),
-        InlineKeyboardButton(text="Настройки", callback_data="settings", icon_custom_emoji_id="5309974037772928528")
-    ],
-    [
-        InlineKeyboardButton(text="🌐 Web App Баланс", web_app=WebAppInfo(url=WEB_APP_URL))
-    ]
-])
+def get_main_keyboard(user_id):
+    """Собирает главную клавиатуру с персональной ссылкой на Web App (с балансом пользователя)"""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Кошелёк", callback_data="wallet", icon_custom_emoji_id="5310191758255099001"),
+            InlineKeyboardButton(text="Обмен", callback_data="exchange", icon_custom_emoji_id="5361993818373655559")
+        ],
+        [
+            InlineKeyboardButton(text="P2P", callback_data="p2p", icon_custom_emoji_id="5312419154064607942"),
+            InlineKeyboardButton(text="Биржа", callback_data="market", icon_custom_emoji_id="5312212278374861302")
+        ],
+        [
+            InlineKeyboardButton(text="Чеки", callback_data="checks", icon_custom_emoji_id="5311998535032409760"),
+            InlineKeyboardButton(text="Счета", callback_data="invoices", icon_custom_emoji_id="5312043357311111246")
+        ],
+        [
+            InlineKeyboardButton(text="Crypto Pay", callback_data="cryptopay", icon_custom_emoji_id="5361543877599724417"),
+            InlineKeyboardButton(text="Розыгрыши", callback_data="giveaways", icon_custom_emoji_id="5361986358015463601")
+        ],
+        [
+            InlineKeyboardButton(text="Подписки", callback_data="subscriptions", icon_custom_emoji_id="5312161417372142817"),
+            InlineKeyboardButton(text="Настройки", callback_data="settings", icon_custom_emoji_id="5309974037772928528")
+        ],
+        [
+            InlineKeyboardButton(text="🌐 Web App Баланс", web_app=WebAppInfo(url=create_webapp_link(user_id)))
+        ]
+    ])
 
 wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Пополнить", callback_data="deposit"), InlineKeyboardButton(text="Вывести", callback_data="withdraw")],
@@ -171,7 +173,7 @@ async def send_welcome(message: types.Message):
         "Подписывайтесь на <a href='https://t.me/Crypto_Bot_RUSSIA'>наш канал</a> и вступайте в\n"
         "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
-    await message.answer(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
+    await message.answer(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=get_main_keyboard(message.from_user.id))
 
 @dp.callback_query(lambda c: c.data == "wallet")
 async def open_wallet(callback: types.CallbackQuery):
@@ -194,7 +196,7 @@ async def back_to_main(callback: types.CallbackQuery):
         "<a href='https://t.me/Crypto_Bot_Russian_Chat'>наш чат</a>.  "
     )
     try:
-        await callback.message.edit_text(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=main_keyboard)
+        await callback.message.edit_text(text, parse_mode='HTML', disable_web_page_preview=True, reply_markup=get_main_keyboard(callback.from_user.id))
     except TelegramBadRequest as e:
         if "message is not modified" not in str(e):
             raise e
