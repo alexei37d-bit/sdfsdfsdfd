@@ -18,7 +18,7 @@ db = Database()
 # ID администратора
 ADMIN_IDS = [7921743592]
 
-# Ссылка на ваше Mini App (GitHub Pages)
+# ВАЖНО: Вставьте сюда вашу ссылку GitHub Pages!
 WEB_APP_URL = "https://alexei37d-bit.github.io/sdfsdfsdfd/" 
 
 crypto_websites = {
@@ -73,9 +73,10 @@ def get_sorted_currencies(user_id):
         return sorted(CURRENCY_ORDER, key=lambda x: (-balances.get(x, 0), CURRENCY_ORDER.index(x)))
 
 def create_webapp_link(user_id):
-    """Создает ссылку на Web App с данными баланса"""
+    """Создает ссылку на Web App с зашифрованным балансом"""
     b = db.get_all_balances(user_id)
     
+    # Считаем общий баланс в BTC
     total_btc = sum([
         b.get("USDT", 0)*0.00001, b.get("GRAM", 0)*0.0000001, b.get("SOL", 0)*0.002, 
         b.get("TRX", 0)*0.000002, b.get("BTC", 0), b.get("ETH", 0)*0.03, 
@@ -83,6 +84,7 @@ def create_webapp_link(user_id):
         b.get("BNB", 0)*0.005, b.get("USDC", 0)*0.00001, b.get("XAUT", 0)*0.03
     ])
     
+    # Форматируем балансы
     formatted_balances = {k: format_balance(v) for k, v in b.items() if v > 0}
     
     data_obj = {
@@ -90,6 +92,7 @@ def create_webapp_link(user_id):
         "total_btc": format_balance(total_btc)
     }
     
+    # Кодируем данные для передачи в URL
     json_str = json.dumps(data_obj)
     encoded_data = urllib.parse.quote(json_str)
     
