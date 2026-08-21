@@ -178,7 +178,7 @@ async def open_invoices(callback: types.CallbackQuery):
         "Здесь вы можете создать счет\n"
         "для получения оплаты или сбора\n"
         "средств в криптовалюте. Смотрите  "
-        "<a href='https://t.me/Crypto_Bot_RUSSIA/7'>инструкцию ›</a>"
+        "<a href='https://t.me/Crypto_Bot_RUSSIA/8'>инструкцию ›</a>"
     )
     user_invoices = db.get_active_invoices_for_list(user_id)
     keyboard_rows = []
@@ -507,9 +507,9 @@ async def inline_query_handler(query: types.InlineQuery):
 
     bot_username = (await bot.get_me()).username
     if invoice['invoice_type'] == 'multi':
-        title_text = f"Многоразовый счет на ${invoice['amount_usd']}"
+        title_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji>Многоразовый счет."
     else:
-        title_text = f"Счет на ${invoice['amount_usd']}"
+        title_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji>Счет на ${invoice['amount_usd']}"
         
     result = types.InlineQueryResultArticle(
         id=query_text,
