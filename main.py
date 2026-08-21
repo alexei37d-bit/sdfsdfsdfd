@@ -507,9 +507,9 @@ async def inline_query_handler(query: types.InlineQuery):
 
     bot_username = (await bot.get_me()).username
     if invoice['invoice_type'] == 'multi':
-        title_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji>Многоразовый счет."
+        title_text = f"Многоразовый счет."
     else:
-        title_text = f"<tg-emoji emoji-id=\"5312043357311111246\">📥</tg-emoji>Счет на ${invoice['amount_usd']}"
+        title_text = f"Счет на ${invoice['amount_usd']}"
         
     result = types.InlineQueryResultArticle(
         id=query_text,
