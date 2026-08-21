@@ -46,7 +46,6 @@ CRYPTO_EMOJIS = {
 # Хранилище состояний
 user_states = {}
 
---- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 def format_balance(value):
     if value == 0:
         return "0"
@@ -66,7 +65,6 @@ def get_sorted_currencies(user_id):
     else:
         return sorted(CURRENCY_ORDER, key=lambda x: (-balances.get(x, 0), CURRENCY_ORDER.index(x)))
 
---- ТЕКСТЫ И КЛАВИАТУРЫ ---
 def get_wallet_text(user_id: int):
     b = db.get_all_balances(user_id)
     if not b:
@@ -121,7 +119,6 @@ wallet_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="‹ Назад", callback_data="back_to_main")]
 ])
 
---- ХЕНДЛЕРЫ ---
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     db.add_user(message.from_user.id)
@@ -174,7 +171,6 @@ async def back_to_main(callback: types.CallbackQuery):
             raise e
     await callback.answer()
 
---- ЛОГИКА СЧЕТОВ ---
 @dp.callback_query(lambda c: c.data == "invoices")
 async def open_invoices(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -496,7 +492,6 @@ async def view_all_invoices(callback: types.CallbackQuery):
             raise e
     await callback.answer()
 
---- SHARE INVOICE (INLINE QUERY) ---
 @dp.inline_query(lambda q: True)
 async def inline_query_handler(query: types.InlineQuery):
     query_text = query.query.strip()
@@ -530,7 +525,6 @@ async def inline_query_handler(query: types.InlineQuery):
     )
     await query.answer(results=[result], cache_time=0)
 
---- PAY INVOICE ---
 async def handle_invoice_payment_start(message, invoice_id):
     invoice = db.get_invoice(invoice_id)
     if not invoice or not invoice['is_active']:
@@ -844,7 +838,6 @@ async def process_payment(callback: types.CallbackQuery):
     except:
         pass
 
---- ЗАГЛУШКИ ДЛЯ ОСТАЛЬНЫХ КНОПОК ---
 @dp.callback_query(lambda c: c.data in [
     "exchange", "p2p", "market", "checks",
     "cryptopay", "giveaways", "subscriptions", "settings",
