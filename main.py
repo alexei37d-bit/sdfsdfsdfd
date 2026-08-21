@@ -7,7 +7,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.exceptions import TelegramBadRequest
 from database import Database
 
---- КОНФИГУРАЦИЯ ---
 BOT_TOKEN = '8985331836:AAEQnX94VdKaezH4ybTuQNU-gDeiMaGLcW8'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
